@@ -1,10 +1,15 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
+ BaseNetwork:
+    Type: String
+    Description: The first two digits of the VPC CIDR block.  Used to derive the VPC (/16) and 3 Subnet (/24) CIDR blocks.
 Resources:
   VPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: 192.167.0.0/16
+      CidrBlock: !Sub
+      - ${FirstHalfCidr}.0.0/16
+      - { FirstHalfCidr: !Ref BaseNetwork }
       InstanceTenancy: default
       EnableDnsSupport: 'true'
       EnableDnsHostnames: 'true'
@@ -16,7 +21,9 @@ Resources:
   SubnetOnePublic:
     Type: AWS::EC2::Subnet
     Properties:
-      CidrBlock: 192.167.1.0/24
+      CidrBlock: !Sub
+      - ${FirstHalfCidr}.1.0/24
+      - { FirstHalfCidr: !Ref BaseNetwork }
       AvailabilityZone: us-west-2a
       VpcId:
         Ref: VPC
@@ -28,7 +35,9 @@ Resources:
   SubnetTwoPublic:
     Type: AWS::EC2::Subnet
     Properties:
-      CidrBlock: 192.167.3.0/24
+      CidrBlock: !Sub
+      - ${FirstHalfCidr}.3.0/24
+      - { FirstHalfCidr: !Ref BaseNetwork }
       AvailabilityZone: us-west-2b
       VpcId:
         Ref: VPC
@@ -38,7 +47,9 @@ Resources:
   SubnetThreePrivate:
     Type: AWS::EC2::Subnet
     Properties:
-      CidrBlock: 192.167.2.0/24
+      CidrBlock: !Sub
+      - ${FirstHalfCidr}.2.0/24
+      - { FirstHalfCidr: !Ref BaseNetwork }
       AvailabilityZone: us-west-2a
       VpcId:
         Ref: VPC
