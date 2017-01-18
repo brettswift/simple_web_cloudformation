@@ -1,6 +1,7 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
- BaseNetwork:
+Parameters:
+  BaseNetwork:
     Type: String
     Description: The first two digits of the VPC CIDR block.  Used to derive the VPC (/16) and 3 Subnet (/24) CIDR blocks.
 Resources:
