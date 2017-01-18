@@ -8,9 +8,7 @@ Resources:
   VPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: !Sub
-      - ${FirstHalfCidr}.0.0/16
-      - { FirstHalfCidr: !Ref BaseNetwork }
+      CidrBlock: !Sub ${BaseNetwork}.0.0/16
       InstanceTenancy: default
       EnableDnsSupport: 'true'
       EnableDnsHostnames: 'true'
@@ -22,9 +20,7 @@ Resources:
   SubnetOnePublic:
     Type: AWS::EC2::Subnet
     Properties:
-      CidrBlock: !Sub
-      - ${FirstHalfCidr}.1.0/24
-      - { FirstHalfCidr: !Ref BaseNetwork }
+      CidrBlock: !Sub ${BaseNetwork}.1.0/24
       AvailabilityZone: us-west-2a
       VpcId:
         Ref: VPC
@@ -36,9 +32,7 @@ Resources:
   SubnetTwoPublic:
     Type: AWS::EC2::Subnet
     Properties:
-      CidrBlock: !Sub
-      - ${FirstHalfCidr}.3.0/24
-      - { FirstHalfCidr: !Ref BaseNetwork }
+      CidrBlock: !Sub ${BaseNetwork}.3.0/24
       AvailabilityZone: us-west-2b
       VpcId:
         Ref: VPC
@@ -48,9 +42,7 @@ Resources:
   SubnetThreePrivate:
     Type: AWS::EC2::Subnet
     Properties:
-      CidrBlock: !Sub
-      - ${FirstHalfCidr}.2.0/24
-      - { FirstHalfCidr: !Ref BaseNetwork }
+      CidrBlock: !Sub ${BaseNetwork}.2.0/24
       AvailabilityZone: us-west-2a
       VpcId:
         Ref: VPC
