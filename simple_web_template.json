@@ -1,0 +1,440 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "VPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "192.167.0.0/16",
+        "InstanceTenancy": "default",
+        "EnableDnsSupport": "true",
+        "EnableDnsHostnames": "true",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "main vpc"
+          },
+          {
+            "Key": "builtby",
+            "Value": "cloudformation"
+          }
+        ]
+      }
+    },
+    "SubnetOnePublic": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "192.167.1.0/24",
+        "AvailabilityZone": "us-west-2a",
+        "VpcId": {
+          "Ref" : "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Public subnet"
+          },
+          {
+            "Key": "builtby",
+            "Value": "cloudformation"
+          }
+        ]
+      }
+    },
+    "SubnetTwoPublic": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "192.167.3.0/24",
+        "AvailabilityZone": "us-west-2b",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "cert Public Subnet 2"
+          }
+        ]
+      }
+    },
+    "SubnetThreePrivate": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "192.167.2.0/24",
+        "AvailabilityZone": "us-west-2a",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "cert Private subnet"
+          }
+        ]
+      }
+    },
+    "igwInternetGateway": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "cert IGW"
+          }
+        ]
+      }
+    },
+    "aclDefault": {
+      "Type": "AWS::EC2::NetworkAcl",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "rtbMain": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "main route table"
+          }
+        ]
+      }
+    },
+    "eipSimpleWeb": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "vpc"
+      }
+    },
+    "asgAutoScaleSimpleWebServer": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AvailabilityZones": [
+          "us-west-2a",
+          "us-west-2b"
+        ],
+        "Cooldown": "120",
+        "DesiredCapacity": "0",
+        "HealthCheckGracePeriod": "300",
+        "HealthCheckType": "EC2",
+        "MaxSize": "3",
+        "MinSize": "0",
+        "VPCZoneIdentifier": [
+          {
+            "Ref": "SubnetOnePublic"
+          },
+          {
+            "Ref": "SubnetTwoPublic"
+          }
+        ],
+        "LaunchConfigurationName": {
+          "Ref": "lcSimpleWeb"
+        },
+        "MetricsCollection": [
+          {
+            "Granularity": "1Minute",
+            "Metrics": [
+              "GroupTerminatingInstances",
+              "GroupInServiceInstances",
+              "GroupMaxSize",
+              "GroupDesiredCapacity",
+              "GroupTotalInstances",
+              "GroupMinSize",
+              "GroupStandbyInstances",
+              "GroupPendingInstances"
+            ]
+          }
+        ],
+        "TerminationPolicies": [
+          "Default"
+        ]
+      }
+    },
+    "lcSimpleWeb": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "AssociatePublicIpAddress": true,
+        "ImageId": "ami-1e299d7e",
+        "InstanceType": "t2.micro",
+        "KeyName": "cert book vpc keypair",
+        "InstanceMonitoring": "true",
+        "SecurityGroups": [
+          {
+            "Ref": "sgCFvpcsecuritygroup"
+          }
+        ],
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "VolumeSize": 8
+            }
+          }
+        ]
+      }
+    },
+    "topicCloudWatchVPCCPU": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "DisplayName": "CloudWatchVPC_CPU",
+        "Subscription": [
+          {
+            "Endpoint": "brettswift@gmail.com",
+            "Protocol": "email"
+          }
+        ]
+      }
+    },
+    "sgCFvpcsecuritygroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "security group for websites on this VPC",
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }
+    },
+    "snspolicyCloudWatchVPCCPU": {
+      "Type": "AWS::SNS::TopicPolicy",
+      "Properties": {
+        "Topics": [
+          {
+            "Ref": "topicCloudWatchVPCCPU"
+          }
+        ],
+        "PolicyDocument": {
+          "Version": "2008-10-17",
+          "Id": "__default_policy_ID",
+          "Statement": [
+            {
+              "Sid": "__default_statement_ID",
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "*"
+              },
+              "Action": [
+                "SNS:GetTopicAttributes",
+                "SNS:SetTopicAttributes",
+                "SNS:AddPermission",
+                "SNS:RemovePermission",
+                "SNS:DeleteTopic",
+                "SNS:Subscribe",
+                "SNS:ListSubscriptionsByTopic",
+                "SNS:Publish",
+                "SNS:Receive"
+              ],
+              "Resource": {
+                "Ref": "topicCloudWatchVPCCPU"
+              },
+              "Condition": {
+                "StringEquals": {
+                  "AWS:SourceOwner": "845689384714"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "scalingDecreaseGroupSize": {
+      "Type": "AWS::AutoScaling::ScalingPolicy",
+      "Properties": {
+        "AdjustmentType": "ChangeInCapacity",
+        "PolicyType": "SimpleScaling",
+        "ScalingAdjustment": -1,
+        "AutoScalingGroupName": {
+          "Ref": "asgAutoScaleSimpleWebServer"
+        }
+      }
+    },
+    "scalingIncreaseGroupSize": {
+      "Type": "AWS::AutoScaling::ScalingPolicy",
+      "Properties": {
+        "AdjustmentType": "ChangeInCapacity",
+        "Cooldown": "60",
+        "PolicyType": "SimpleScaling",
+        "ScalingAdjustment": 1,
+        "AutoScalingGroupName": {
+          "Ref": "asgAutoScaleSimpleWebServer"
+        }
+      }
+    },
+    "alarmCPUabove30": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": "true",
+        "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+        "EvaluationPeriods": "1",
+        "MetricName": "CPUUtilization",
+        "Namespace": "AWS/EC2",
+        "Period": "60",
+        "Statistic": "Average",
+        "Threshold": "30.0",
+        "AlarmActions": [
+          {
+            "Ref": "scalingIncreaseGroupSize"
+          }
+        ],
+        "Dimensions": [
+          {
+            "Name": "AutoScalingGroupName",
+            "Value": "Auto Scale Simple Web Server"
+          }
+        ]
+      }
+    },
+    "alarmCPUbelow20": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": "true",
+        "ComparisonOperator": "LessThanOrEqualToThreshold",
+        "EvaluationPeriods": "2",
+        "MetricName": "CPUUtilization",
+        "Namespace": "AWS/EC2",
+        "Period": "300",
+        "Statistic": "Average",
+        "Threshold": "20.0",
+        "AlarmActions": [
+          "arn:aws:sns:us-west-2:845689384714:CloudWatchVPC_CPU",
+          {
+            "Ref": "scalingDecreaseGroupSize"
+          }
+        ],
+        "Dimensions": [
+          {
+            "Name": "AutoScalingGroupName",
+            "Value": "Auto Scale Simple Web Server"
+          }
+        ]
+      }
+    },
+    "aclAllowAllInternet": {
+      "Type": "AWS::EC2::NetworkAclEntry",
+      "Properties": {
+        "CidrBlock": "0.0.0.0/0",
+        "Egress": "true",
+        "Protocol": "-1",
+        "RuleAction": "allow",
+        "RuleNumber": "100",
+        "NetworkAclId": {
+          "Ref": "aclDefault"
+        }
+      }
+    },
+    "aclAllowAllInternetWWWWHHHAATTT": {
+      "Type": "AWS::EC2::NetworkAclEntry",
+      "Properties": {
+        "CidrBlock": "0.0.0.0/0",
+        "Protocol": "-1",
+        "RuleAction": "allow",
+        "RuleNumber": "100",
+        "NetworkAclId": {
+          "Ref": "aclDefault"
+        }
+      }
+    },
+    "SubnetOneAclAssociation": {
+      "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "aclDefault"
+        },
+        "SubnetId": {
+          "Ref": "SubnetOnePublic"
+        }
+      }
+    },
+    "subnetTwoAclAssociation": {
+      "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "aclDefault"
+        },
+        "SubnetId": {
+          "Ref": "SubnetTwoPublic"
+        }
+      }
+    },
+    "subnetThreeAclAssociation": {
+      "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "aclDefault"
+        },
+        "SubnetId": {
+          "Ref": "SubnetThreePrivate"
+        }
+      }
+    },
+    "gwAttachIgw": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "InternetGatewayId": {
+          "Ref": "igwInternetGateway"
+        }
+      }
+    },
+    "routeIgw": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": { "Ref": "igwInternetGateway" },
+        "RouteTableId": {
+          "Ref": "rtbMain"
+        }
+      }
+    },
+    "dchpassoc3": {
+      "Type": "AWS::EC2::VPCDHCPOptionsAssociation",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "DhcpOptionsId": "dopt-f944559b"
+      }
+    },
+    "ingressSsh": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "sgCFvpcsecuritygroup"
+        },
+        "IpProtocol": "tcp",
+        "FromPort": "22",
+        "ToPort": "22",
+        "CidrIp": "0.0.0.0/0"
+      }
+    },
+    "egressInternet": {
+      "Type": "AWS::EC2::SecurityGroupEgress",
+      "Properties": {
+        "GroupId": {
+          "Ref": "sgCFvpcsecuritygroup"
+        },
+        "IpProtocol": "-1",
+        "CidrIp": "0.0.0.0/0"
+      }
+    }
+  },
+  "Description": "simple web auto scaling group",
+  "Outputs": {
+    "VPCId" : {
+      "Description" : "VPC ID",
+      "Value" :  { "Ref" : "VPC" },
+      "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-VPCID" }}
+    },
+    "Subnet" : {
+      "Description" : "The subnet ID to use for web servers behind the LB",
+      "Value" :  { "Ref" : "SubnetThreePrivate" },
+      "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-SubnetID" }}
+    }
+  }
+}
