@@ -1,90 +1,308 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Creates a VPC with subnets in each availability zone'
+Description: >
+    VPC with 4 subnets across 2 Availability Zones.
+    TODO make NAT gateways redundant in AZs
+Parameters:
+  CorporateCidrIp:
+    Description: Your Company's CidrIp (to restrict traffic to be authorized ONLY
+      from corporate office)
+    Type: String
+    Default: 0.0.0.0/0
 Resources:
   VPC:
     Type: AWS::EC2::VPC
     Properties:
-      EnableDnsSupport: 'true'
-      EnableDnsHostnames: 'true'
       CidrBlock: 10.0.0.0/16
-  PublicSubnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId:
-        Ref: VPC
-      CidrBlock: 10.0.0.0/24
   InternetGateway:
     Type: AWS::EC2::InternetGateway
-  VPCGatewayAttachment:
+    Properties: {}
+  AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId:
         Ref: VPC
       InternetGatewayId:
         Ref: InternetGateway
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone:
+        Fn::Select:
+        - '0'
+        - Fn::GetAZs: ''
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 10.0.10.0/24
+      AvailabilityZone:
+        Fn::Select:
+        - '1'
+        - Fn::GetAZs: ''
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 10.0.20.0/24
+      AvailabilityZone:
+        Fn::Select:
+        - '2'
+        - Fn::GetAZs: ''
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 10.0.11.0/24
+      AvailabilityZone:  !Select [1, !GetAZs '']
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 10.0.21.0/24
+      AvailabilityZone:  !Select [1, !GetAZs '']
   PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+  PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId:
         Ref: VPC
   PublicRoute:
     Type: AWS::EC2::Route
-    DependsOn: VPCGatewayAttachment
     Properties:
       RouteTableId:
         Ref: PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId:
         Ref: InternetGateway
-  PublicSubnetRouteTableAssociation:
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NAT1
+  PublicSubnetRouteTableAssociation1:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId:
-        Ref: PublicSubnet
+        Ref: PublicSubnet1
       RouteTableId:
         Ref: PublicRouteTable
-  PublicSubnetNetworkAclAssociation:
+  PublicSubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet2
+      RouteTableId:
+        Ref: PublicRouteTable
+  PrivateSubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnet1
+      RouteTableId:
+        Ref: PrivateRouteTable
+  PrivateSubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnet2
+      RouteTableId:
+        Ref: PrivateRouteTable
+  PublicSubnetAcl:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId:
+        Ref: VPC
+  PrivateSubnetAcl:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId:
+        Ref: VPC
+  PublicInSubnetAclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId:
+        Ref: PublicSubnetAcl
+      RuleNumber: '32000'
+      Protocol: "-1"
+      RuleAction: allow
+      Egress: 'false'
+      CidrBlock: 0.0.0.0/0
+      Icmp:
+        Code: "-1"
+        Type: "-1"
+      PortRange:
+        From: '1'
+        To: '65535'
+  PublicOutSubnetAclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId:
+        Ref: PublicSubnetAcl
+      RuleNumber: '32000'
+      Protocol: "-1"
+      RuleAction: allow
+      Egress: 'true'
+      CidrBlock: 0.0.0.0/0
+      Icmp:
+        Code: "-1"
+        Type: "-1"
+      PortRange:
+        From: '1'
+        To: '65535'
+  PrivateInSubnetAclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId:
+        Ref: PrivateSubnetAcl
+      RuleNumber: '32000'
+      Protocol: "-1"
+      RuleAction: allow
+      Egress: 'false'
+      CidrBlock: 0.0.0.0/0
+      Icmp:
+        Code: "-1"
+        Type: "-1"
+      PortRange:
+        From: '1'
+        To: '65535'
+  PrivateOutSubnetAclEntry:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      NetworkAclId:
+        Ref: PrivateSubnetAcl
+      RuleNumber: '32000'
+      Protocol: "-1"
+      RuleAction: allow
+      Egress: 'true'
+      CidrBlock: 0.0.0.0/0
+      Icmp:
+        Code: "-1"
+        Type: "-1"
+      PortRange:
+        From: '1'
+        To: '65535'
+  PublicSubnetAclAssociation1:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
       SubnetId:
-        Ref: PublicSubnet
+        Ref: PublicSubnet1
       NetworkAclId:
+        Ref: PublicSubnetAcl
+  PublicSubnetAclAssociation2:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet2
+      NetworkAclId:
+        Ref: PublicSubnetAcl
+  PrivateSubnetAclAssociation1:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnet1
+      NetworkAclId:
+        Ref: PrivateSubnetAcl
+  PrivateSubnetAclAssociation2:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnet2
+      NetworkAclId:
+        Ref: PrivateSubnetAcl
+  NAT1:
+    DependsOn: AttachGateway
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
         Fn::GetAtt:
-        - VPC
-        - DefaultNetworkAcl
-  WebServerSecurityGroup:
+        - NATIP1
+        - AllocationId
+      SubnetId:
+        Ref: PublicSubnet1
+  NATIP1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  NATSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Enable HTTP ingress
+      GroupDescription: NAT Security Group
+      VpcId:
+        Ref: VPC
+      SecurityGroupIngress:
+      - IpProtocol: "-1"
+        FromPort: '1'
+        ToPort: '65535'
+        SourceSecurityGroupId:
+          Ref: PrivateSG
+      - IpProtocol: icmp
+        FromPort: "-1"
+        ToPort: "-1"
+        SourceSecurityGroupId:
+          Ref: PrivateSG
+  PrivateSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Servers in the Private Subnets
       VpcId:
         Ref: VPC
       SecurityGroupIngress:
       - IpProtocol: tcp
-        FromPort: '80'
-        ToPort: '80'
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: '3389'
+        ToPort: '3389'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: icmp
+        FromPort: "-1"
+        ToPort: "-1"
         CidrIp: 0.0.0.0/0
 Outputs:
-  VPCId:
-    Description: VPC ID
+  VPC:
+    Description: VPC
     Value:
       Ref: VPC
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-VPCID"
-  PublicSubnet:
-    Description: The subnet ID to use for public web servers
+  PublicSubnets:
+    Description: Public Subnets
     Value:
-      Ref: PublicSubnet
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-SubnetID"
-  WebServerSecurityGroup:
-    Description: The security group ID to use for public web servers
+      Fn::Join:
+      - ''
+      - - Ref: PublicSubnet1
+        - ", "
+        - Ref: PublicSubnet2
+        - ", "
+        - Ref: PublicSubnet3
+  PrivateSubnets:
+    Description: Private Subnets
     Value:
-      Fn::GetAtt:
-      - WebServerSecurityGroup
-      - GroupId
-    Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-SecurityGroupID"
+      Fn::Join:
+      - ''
+      - - Ref: PrivateSubnet1
+        - ", "
+        - Ref: PrivateSubnet2
+        - ", "
+        - Ref: PrivateSubnet3
