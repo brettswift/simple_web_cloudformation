@@ -14,6 +14,11 @@ Resources:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 10.0.0.0/16
+      Tags:
+      - Key: Name
+        Value: MainVPC
+      - Key: builtby
+        Value: cloudformation
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties: {}
