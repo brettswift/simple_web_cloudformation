@@ -139,6 +139,9 @@ Resources:
     Properties:
       VpcId:
         Ref: VPC
+      Tags:
+        - Key: Name
+          Value: MainVPC
   PrivateSubnetAcl:
     Type: AWS::EC2::NetworkAcl
     Properties:
@@ -181,7 +184,7 @@ Resources:
     Properties:
       NetworkAclId:
         Ref: PrivateSubnetAcl
-      RuleNumber: '32000'
+      RuleNumber: '32001'
       Protocol: "-1"
       RuleAction: allow
       Egress: 'false'
@@ -197,7 +200,7 @@ Resources:
     Properties:
       NetworkAclId:
         Ref: PrivateSubnetAcl
-      RuleNumber: '32000'
+      RuleNumber: '32001'
       Protocol: "-1"
       RuleAction: allow
       Egress: 'true'
@@ -301,6 +304,8 @@ Outputs:
         - Ref: PublicSubnet2
         - ", "
         - Ref: PublicSubnet3
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicSubnets"
   PrivateSubnets:
     Description: Private Subnets
     Value:
@@ -311,3 +316,34 @@ Outputs:
         - Ref: PrivateSubnet2
         - ", "
         - Ref: PrivateSubnet3
+    Export:
+      Name: !Sub "${AWS::StackName}-PrivateSubnets"
+  # SecurityGroupIngress:
+  #   Description: Security group for ssh / rdp access
+  #   Value: ${PrivateSG}
+  # TSSG: #sample stack export
+  #   Value: !Ref TroubleShootingSG
+  #   Export:
+  #     Name: AccountSG
+
+  VPCId:
+    Description: VPC ID
+    Value: !Ref VPC
+    Export:
+      Name: !Sub "${AWS::StackName}-VpcId"
+  # PublicSubnetsExported:
+  #   Description: The subnet ID to use for public web servers
+  #   Value:
+  #     Ref: PublicSubnets
+  #   Export:
+  #     Name:
+  #       Fn::Sub: "${AWS::StackName}-SubnetID"
+  AccessSecurityGroup:
+    Description: The security group ID to used for OS access
+    Value:
+      Fn::GetAtt:
+      - PrivateSG
+      - GroupId
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-AccessSecurityGroupID"
