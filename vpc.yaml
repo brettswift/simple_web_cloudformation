@@ -12,7 +12,7 @@ Parameters:
   ClassB:
     Description: 'Class B of VPC (10.XXX.0.0/16)'
     Type: Number
-    Default: 0
+    Default: 1
     ConstraintDescription: 'Must be in the range [0-255]'
     MinValue: 0
     MaxValue: 255
@@ -32,138 +32,109 @@ Resources:
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId:
-        Ref: VPC
-      InternetGatewayId:
-        Ref: InternetGateway
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
   SubnetPublicA:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId:
-        Ref: VPC
+      VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.0.0/24'
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
   SubnetPublicB:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId:
-        Ref: VPC
+      VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.10.0/24'
       AvailabilityZone: !Select [ 1, !GetAZs '' ]
   SubnetPublicC:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId:
-        Ref: VPC
+      VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.20.0/24'
       AvailabilityZone: !Select [ 2, !GetAZs '' ]
   SubnetPrivateA:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId:
-        Ref: VPC
+      VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.1.0/24'
       AvailabilityZone: !Select [0, !GetAZs '']
   SubnetPrivateB:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId:
-        Ref: VPC
+      VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.11.0/24'
       AvailabilityZone:  !Select [1, !GetAZs '']
   SubnetPrivateC:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId:
-        Ref: VPC
+      VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.21.0/24'
       AvailabilityZone:  !Select [1, !GetAZs '']
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId:
-        Ref: VPC
+      VpcId: !Ref VPC
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId:
-        Ref: VPC
+      VpcId: !Ref VPC
   PublicRoute:
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId:
-        Ref: PublicRouteTable
+      RouteTableId: !Ref PublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId:
-        Ref: InternetGateway
+      GatewayId: !Ref InternetGateway
   PrivateRoute:
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId:
-        Ref: PrivateRouteTable
+      RouteTableId: !Ref PrivateRouteTable
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId:
-        Ref: NAT1
+      NatGatewayId: !Ref NAT1
   PublicSubnetRouteTableAssociationA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId:
-        Ref: SubnetPublicA
-      RouteTableId:
-        Ref: PublicRouteTable
+      SubnetId: !Ref SubnetPublicA
+      RouteTableId: !Ref PublicRouteTable
   PublicSubnetRouteTableAssociationB:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId:
-        Ref: SubnetPublicB
-      RouteTableId:
-        Ref: PublicRouteTable
+      SubnetId: !Ref SubnetPublicB
+      RouteTableId: !Ref PublicRouteTable
   PublicSubnetRouteTableAssociationC:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId:
-        Ref: SubnetPublicC
-      RouteTableId:
-        Ref: PublicRouteTable
+      SubnetId: !Ref SubnetPublicC
+      RouteTableId: !Ref PublicRouteTable
   PrivateSubnetRouteTableAssociationA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId:
-        Ref: SubnetPrivateA
-      RouteTableId:
-        Ref: PrivateRouteTable
+      SubnetId: !Ref SubnetPrivateA
+      RouteTableId: !Ref PrivateRouteTable
   PrivateSubnetRouteTableAssociationB:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId:
-        Ref: SubnetPrivateB
-      RouteTableId:
-        Ref: PrivateRouteTable
+      SubnetId: !Ref SubnetPrivateB
+      RouteTableId: !Ref PrivateRouteTable
   PrivateSubnetRouteTableAssociationC:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId:
-        Ref: SubnetPrivateC
-      RouteTableId:
-        Ref: PrivateRouteTable
+      SubnetId: !Ref SubnetPrivateC
+      RouteTableId: !Ref PrivateRouteTable
   PublicSubnetAcl:
     Type: AWS::EC2::NetworkAcl
     Properties:
-      VpcId:
-        Ref: VPC
+      VpcId: !Ref VPC
       Tags:
         - Key: Name
           Value: MainVPC
   PrivateSubnetAcl:
     Type: AWS::EC2::NetworkAcl
     Properties:
-      VpcId:
-        Ref: VPC
+      VpcId: !Ref VPC
   PublicInSubnetAclEntry:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
-      NetworkAclId:
-        Ref: PublicSubnetAcl
+      NetworkAclId: !Ref PublicSubnetAcl
       RuleNumber: '32000'
       Protocol: "-1"
       RuleAction: allow
@@ -178,8 +149,7 @@ Resources:
   PublicOutSubnetAclEntry:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
-      NetworkAclId:
-        Ref: PublicSubnetAcl
+      NetworkAclId: !Ref PublicSubnetAcl
       RuleNumber: '32000'
       Protocol: "-1"
       RuleAction: allow
@@ -194,8 +164,7 @@ Resources:
   PrivateInSubnetAclEntry:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
-      NetworkAclId:
-        Ref: PrivateSubnetAcl
+      NetworkAclId: !Ref PrivateSubnetAcl
       RuleNumber: '32001'
       Protocol: "-1"
       RuleAction: allow
@@ -210,8 +179,7 @@ Resources:
   PrivateOutSubnetAclEntry:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
-      NetworkAclId:
-        Ref: PrivateSubnetAcl
+      NetworkAclId: !Ref PrivateSubnetAcl
       RuleNumber: '32001'
       Protocol: "-1"
       RuleAction: allow
@@ -226,38 +194,29 @@ Resources:
   PublicSubnetAclAssociation1:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
-      SubnetId:
-        Ref: SubnetPublicA
-      NetworkAclId:
-        Ref: PublicSubnetAcl
+      SubnetId: !Ref SubnetPublicA
+      NetworkAclId: !Ref PublicSubnetAcl
   PublicSubnetAclAssociation2:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
-      SubnetId:
-        Ref: SubnetPublicB
-      NetworkAclId:
-        Ref: PublicSubnetAcl
+      SubnetId: !Ref SubnetPublicB
+      NetworkAclId: !Ref PublicSubnetAcl
   PrivateSubnetAclAssociation1:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
-      SubnetId:
-        Ref: SubnetPrivateA
-      NetworkAclId:
-        Ref: PrivateSubnetAcl
+      SubnetId: !Ref SubnetPrivateA
+      NetworkAclId: !Ref PrivateSubnetAcl
   PrivateSubnetAclAssociation2:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
-      SubnetId:
-        Ref: SubnetPrivateB
-      NetworkAclId:
-        Ref: PrivateSubnetAcl
+      SubnetId: !Ref SubnetPrivateB
+      NetworkAclId: !Ref PrivateSubnetAcl
   NAT1:
     DependsOn: AttachGateway
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NATIP1.AllocationId
-      SubnetId:
-        Ref: SubnetPublicA
+      SubnetId: !Ref SubnetPublicA
   NATIP1:
     Type: AWS::EC2::EIP
     Properties:
@@ -266,19 +225,16 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: NAT Security Group
-      VpcId:
-        Ref: VPC
+      VpcId: !Ref VPC
       SecurityGroupIngress:
       - IpProtocol: "-1"
         FromPort: '1'
         ToPort: '65535'
-        SourceSecurityGroupId:
-          Ref: PrivateSG
+        SourceSecurityGroupId: !Ref PrivateSG
       - IpProtocol: icmp
         FromPort: "-1"
         ToPort: "-1"
-        SourceSecurityGroupId:
-          Ref: PrivateSG
+        SourceSecurityGroupId: !Ref PrivateSG
   PrivateSG:
     Type: AWS::EC2::SecurityGroup
     Properties:
