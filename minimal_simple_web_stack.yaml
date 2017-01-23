@@ -352,9 +352,8 @@ Resources:
       InstanceType: !Sub "${InstanceType}"
       KeyName: !Sub "${KeyName}"
       InstanceMonitoring: 'true'
-      # SecurityGroups:
-        # - !ImportValue !Sub "${VpcStackName}-PrivateSG" #TODO: allow traffic only from ELB
-      # - Ref: sgCFvpcsecuritygroup #TODO use VPC security group
+      SecurityGroups: #are assigned to ec2 instances
+      - Ref: sgInstanceSecurityGroup
       BlockDeviceMappings:
       - DeviceName: "/dev/xvda"
         Ebs:
