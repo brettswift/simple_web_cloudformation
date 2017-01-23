@@ -35,10 +35,7 @@ Resources:
       VpcId:
         Ref: VPC
       CidrBlock: 10.0.0.0/24
-      AvailabilityZone:
-        Fn::Select:
-        - '0'
-        - Fn::GetAZs: ''
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
   PublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
@@ -243,10 +240,7 @@ Resources:
     DependsOn: AttachGateway
     Type: AWS::EC2::NatGateway
     Properties:
-      AllocationId:
-        Fn::GetAtt:
-        - NATIP1
-        - AllocationId
+      AllocationId: !GetAtt NATIP1.AllocationId
       SubnetId:
         Ref: PublicSubnet1
   NATIP1:
@@ -318,32 +312,14 @@ Outputs:
         - Ref: PrivateSubnet3
     Export:
       Name: !Sub "${AWS::StackName}-PrivateSubnets"
-  # SecurityGroupIngress:
-  #   Description: Security group for ssh / rdp access
-  #   Value: ${PrivateSG}
-  # TSSG: #sample stack export
-  #   Value: !Ref TroubleShootingSG
-  #   Export:
-  #     Name: AccountSG
-
   VPCId:
     Description: VPC ID
     Value: !Ref VPC
     Export:
       Name: !Sub "${AWS::StackName}-VpcId"
-  # PublicSubnetsExported:
-  #   Description: The subnet ID to use for public web servers
-  #   Value:
-  #     Ref: PublicSubnets
-  #   Export:
-  #     Name:
-  #       Fn::Sub: "${AWS::StackName}-SubnetID"
   AccessSecurityGroup:
     Description: The security group ID to used for OS access
-    Value:
-      Fn::GetAtt:
-      - PrivateSG
-      - GroupId
+    Value: !GetAtt PrivateSG.GroupId
     Export:
       Name:
         Fn::Sub: "${AWS::StackName}-AccessSecurityGroupID"
