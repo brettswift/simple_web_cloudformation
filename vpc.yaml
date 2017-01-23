@@ -36,42 +36,42 @@ Resources:
         Ref: VPC
       InternetGatewayId:
         Ref: InternetGateway
-  PublicSubnet1:
+  SubnetPublicA:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId:
         Ref: VPC
       CidrBlock: !Sub '10.${ClassB}.0.0/24'
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
-  PublicSubnet2:
+  SubnetPublicB:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId:
         Ref: VPC
       CidrBlock: !Sub '10.${ClassB}.10.0/24'
       AvailabilityZone: !Select [ 1, !GetAZs '' ]
-  PublicSubnet3:
+  SubnetPublicC:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId:
         Ref: VPC
       CidrBlock: !Sub '10.${ClassB}.20.0/24'
       AvailabilityZone: !Select [ 2, !GetAZs '' ]
-  PrivateSubnet1:
+  SubnetPrivateA:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId:
         Ref: VPC
       CidrBlock: !Sub '10.${ClassB}.1.0/24'
       AvailabilityZone: !Select [0, !GetAZs '']
-  PrivateSubnet2:
+  SubnetPrivateB:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId:
         Ref: VPC
       CidrBlock: !Sub '10.${ClassB}.11.0/24'
       AvailabilityZone:  !Select [1, !GetAZs '']
-  PrivateSubnet3:
+  SubnetPrivateC:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId:
@@ -104,32 +104,46 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId:
         Ref: NAT1
-  PublicSubnetRouteTableAssociation1:
+  PublicSubnetRouteTableAssociationA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId:
-        Ref: PublicSubnet1
+        Ref: SubnetPublicA
       RouteTableId:
         Ref: PublicRouteTable
-  PublicSubnetRouteTableAssociation2:
+  PublicSubnetRouteTableAssociationB:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId:
-        Ref: PublicSubnet2
+        Ref: SubnetPublicB
       RouteTableId:
         Ref: PublicRouteTable
-  PrivateSubnetRouteTableAssociation1:
+  PublicSubnetRouteTableAssociationC:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId:
-        Ref: PrivateSubnet1
+        Ref: SubnetPublicC
+      RouteTableId:
+        Ref: PublicRouteTable
+  PrivateSubnetRouteTableAssociationA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetPrivateA
       RouteTableId:
         Ref: PrivateRouteTable
-  PrivateSubnetRouteTableAssociation2:
+  PrivateSubnetRouteTableAssociationB:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId:
-        Ref: PrivateSubnet2
+        Ref: SubnetPrivateB
+      RouteTableId:
+        Ref: PrivateRouteTable
+  PrivateSubnetRouteTableAssociationC:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: SubnetPrivateC
       RouteTableId:
         Ref: PrivateRouteTable
   PublicSubnetAcl:
@@ -213,28 +227,28 @@ Resources:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
       SubnetId:
-        Ref: PublicSubnet1
+        Ref: SubnetPublicA
       NetworkAclId:
         Ref: PublicSubnetAcl
   PublicSubnetAclAssociation2:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
       SubnetId:
-        Ref: PublicSubnet2
+        Ref: SubnetPublicB
       NetworkAclId:
         Ref: PublicSubnetAcl
   PrivateSubnetAclAssociation1:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
       SubnetId:
-        Ref: PrivateSubnet1
+        Ref: SubnetPrivateA
       NetworkAclId:
         Ref: PrivateSubnetAcl
   PrivateSubnetAclAssociation2:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
       SubnetId:
-        Ref: PrivateSubnet2
+        Ref: SubnetPrivateB
       NetworkAclId:
         Ref: PrivateSubnetAcl
   NAT1:
@@ -243,7 +257,7 @@ Resources:
     Properties:
       AllocationId: !GetAtt NATIP1.AllocationId
       SubnetId:
-        Ref: PublicSubnet1
+        Ref: SubnetPublicA
   NATIP1:
     Type: AWS::EC2::EIP
     Properties:
@@ -294,9 +308,9 @@ Outputs:
     Value:
       Fn::Join:
       - ','
-      - - Ref: PublicSubnet1
-        - Ref: PublicSubnet2
-        - Ref: PublicSubnet3
+      - - Ref: SubnetPublicA
+        - Ref: SubnetPublicB
+        - Ref: SubnetPublicC
     Export:
       Name: !Sub "${AWS::StackName}-PublicSubnets"
   PrivateSubnets:
@@ -304,9 +318,9 @@ Outputs:
     Value:
       Fn::Join:
       - ','
-      - - Ref: PrivateSubnet1
-        - Ref: PrivateSubnet2
-        - Ref: PrivateSubnet3
+      - - Ref: SubnetPrivateA
+        - Ref: SubnetPrivateB
+        - Ref: SubnetPrivateC
     Export:
       Name: !Sub "${AWS::StackName}-PrivateSubnets"
   VPCId:
@@ -319,3 +333,33 @@ Outputs:
     Value: !GetAtt PrivateSG.GroupId
     Export:
       Name: !Sub "${AWS::StackName}-AccessSecurityGroupID"
+  SubnetPublicA:
+    Description: 'Subnet A public.'
+    Value: !Ref SubnetPublicA
+    Export:
+      Name: !Sub '${AWS::StackName}-SubnetPublicA'
+  SubnetPrivateA:
+    Description: 'Subnet A private.'
+    Value: !Ref SubnetPrivateA
+    Export:
+      Name: !Sub '${AWS::StackName}-SubnetPrivateA'
+  SubnetPublicB:
+    Description: 'Subnet B public.'
+    Value: !Ref SubnetPublicB
+    Export:
+      Name: !Sub '${AWS::StackName}-SubnetPublicB'
+  SubnetPrivateB:
+    Description: 'Subnet B private.'
+    Value: !Ref SubnetPrivateB
+    Export:
+      Name: !Sub '${AWS::StackName}-SubnetPrivateB'
+  SubnetPublicC:
+    Description: 'Subnet C public.'
+    Value: !Ref SubnetPublicC
+    Export:
+      Name: !Sub '${AWS::StackName}-SubnetPublicC'
+  SubnetPrivateC:
+    Description: 'Subnet C private.'
+    Value: !Ref SubnetPrivateC
+    Export:
+      Name: !Sub '${AWS::StackName}-SubnetPrivateC'
