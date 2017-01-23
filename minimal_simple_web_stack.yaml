@@ -408,34 +408,34 @@ Resources:
   #     GroupDescription: security group for websites on this VPC
   #     VpcId:
   #       Ref: VPC
-  # snspolicyCloudWatchVPCCPU:
-  #   Type: AWS::SNS::TopicPolicy
-  #   Properties:
-  #     Topics:
-  #     - Ref: snsCloudWatchCPU
-  #     PolicyDocument:
-  #       Version: '2008-10-17'
-  #       Id: __default_policy_ID
-  #       Statement:
-  #       - Sid: __default_statement_ID
-  #         Effect: Allow
-  #         Principal:
-  #           AWS: "*"
-  #         Action:
-  #         - SNS:GetTopicAttributes
-  #         - SNS:SetTopicAttributes
-  #         - SNS:AddPermission
-  #         - SNS:RemovePermission
-  #         - SNS:DeleteTopic
-  #         - SNS:Subscribe
-  #         - SNS:ListSubscriptionsByTopic
-  #         - SNS:Publish
-  #         - SNS:Receive
-  #         Resource:
-  #           Ref: snsCloudWatchCPU
-  #         Condition:
-  #           StringEquals:
-  #             AWS:SourceOwner: '845689384714'
+  snspolicyCloudWatchVPCCPU:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+      - Ref: snsCloudWatchCPU
+      PolicyDocument:
+        Version: '2008-10-17'
+        Id: __default_policy_ID
+        Statement:
+        - Sid: __default_statement_ID
+          Effect: Allow
+          Principal:
+            AWS: "*"
+          Action:
+          - SNS:GetTopicAttributes
+          - SNS:SetTopicAttributes
+          - SNS:AddPermission
+          - SNS:RemovePermission
+          - SNS:DeleteTopic
+          - SNS:Subscribe
+          - SNS:ListSubscriptionsByTopic
+          - SNS:Publish
+          - SNS:Receive
+          Resource:
+            Ref: snsCloudWatchCPU
+          Condition:
+            StringEquals:
+              AWS:SourceOwner: '845689384714'
   # scalingDecreaseGroupSize:
   #   Type: AWS::AutoScaling::ScalingPolicy
   #   Properties:
@@ -486,7 +486,7 @@ Resources:
   #     Dimensions:
   #     - Name: AutoScalingGroupName
   #       Value: Auto Scale Simple Web Server
-  # ingressSsh:
+  # ingressSsh: 
   #   Type: AWS::EC2::SecurityGroupIngress
   #   Properties:
   #     GroupId:
