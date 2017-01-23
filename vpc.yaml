@@ -9,11 +9,18 @@ Parameters:
       from corporate office)
     Type: String
     Default: 0.0.0.0/0
+  ClassB:
+    Description: 'Class B of VPC (10.XXX.0.0/16)'
+    Type: Number
+    Default: 0
+    ConstraintDescription: 'Must be in the range [0-255]'
+    MinValue: 0
+    MaxValue: 255
 Resources:
   VPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: 10.0.0.0/16
+      CidrBlock: !Sub '10.${ClassB}.0.0/16'
       Tags:
       - Key: Name
         Value: MainVPC
@@ -34,42 +41,42 @@ Resources:
     Properties:
       VpcId:
         Ref: VPC
-      CidrBlock: 10.0.0.0/24
+      CidrBlock: !Sub '10.${ClassB}.0.0/24'
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
   PublicSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId:
         Ref: VPC
-      CidrBlock: 10.0.10.0/24
+      CidrBlock: !Sub '10.${ClassB}.10.0/24'
       AvailabilityZone: !Select [ 1, !GetAZs '' ]
   PublicSubnet3:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId:
         Ref: VPC
-      CidrBlock: 10.0.20.0/24
+      CidrBlock: !Sub '10.${ClassB}.20.0/24'
       AvailabilityZone: !Select [ 2, !GetAZs '' ]
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId:
         Ref: VPC
-      CidrBlock: 10.0.1.0/24
+      CidrBlock: !Sub '10.${ClassB}.1.0/24'
       AvailabilityZone: !Select [0, !GetAZs '']
   PrivateSubnet2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId:
         Ref: VPC
-      CidrBlock: 10.0.11.0/24
+      CidrBlock: !Sub '10.${ClassB}.11.0/24'
       AvailabilityZone:  !Select [1, !GetAZs '']
   PrivateSubnet3:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId:
         Ref: VPC
-      CidrBlock: 10.0.21.0/24
+      CidrBlock: !Sub '10.${ClassB}.21.0/24'
       AvailabilityZone:  !Select [1, !GetAZs '']
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
