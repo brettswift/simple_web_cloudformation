@@ -26,6 +26,14 @@ Parameters:
     - t2.small
     - t2.medium
     ConstraintDescription: must be a valid EC2 instance type.
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 0.0.0.0/0
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
 Mappings:
   AWSInstanceType2Arch:
     t1.micro:
@@ -345,6 +353,7 @@ Resources:
       KeyName: !Sub "${KeyName}"
       InstanceMonitoring: 'true'
       # SecurityGroups:
+        # - !ImportValue !Sub "${VpcStackName}-PrivateSG" #TODO: allow traffic only from ELB
       # - Ref: sgCFvpcsecuritygroup #TODO use VPC security group
       BlockDeviceMappings:
       - DeviceName: "/dev/xvda"
@@ -357,6 +366,43 @@ Resources:
       Subscription:
       - Endpoint: brettswift@gmail.com
         Protocol: email
+  elbSimpleWebLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      AvailabilityZones:
+        Fn::GetAZs: ''
+      CrossZone: 'true'
+      Listeners:
+      - LoadBalancerPort: '80'
+        InstancePort: '80'
+        Protocol: HTTP
+      HealthCheck:
+        Target: HTTP:8000/health.html
+        HealthyThreshold: '3'
+        UnhealthyThreshold: '5'
+        Interval: '30'
+        Timeout: '5'
+  sgInstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access and HTTP from the load balancer only
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: !Ref SSHLocation
+      - IpProtocol: tcp
+        FromPort: '8000'
+        ToPort: '8000'
+        SourceSecurityGroupOwnerId:
+          Fn::GetAtt:
+          - elbSimpleWebLoadBalancer
+          - SourceSecurityGroup.OwnerAlias
+        SourceSecurityGroupName:
+          Fn::GetAtt:
+          - elbSimpleWebLoadBalancer
+          - SourceSecurityGroup.GroupName
+
   # sgCFvpcsecuritygroup:
   #   Type: AWS::EC2::SecurityGroup
   #   Properties:
