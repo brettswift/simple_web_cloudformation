@@ -10,7 +10,7 @@ Parameters:
     MinLength: 1
     MaxLength: 255
     AllowedPattern: "^[a-zA-Z][-a-zA-Z0-9]*$"
-    Default: MainVPC
+    Default: MainVpc
   KeyName:
     Description: The EC2 Key Pair to allow SSH access to the instances
     Type: AWS::EC2::KeyPair::KeyName
@@ -315,35 +315,35 @@ Resources:
   #   Type: AWS::EC2::EIP
   #   Properties:
   #     Domain: vpc
-  # asgAutoScaleSimpleWebServer:
-  #   Type: AWS::AutoScaling::AutoScalingGroup
-  #   Properties:
-  #     AvailabilityZones: !GetAZs '' #VPC must enable subnets in all zones
-  #     Cooldown: '120'
-  #     DesiredCapacity: '0'
-  #     HealthCheckGracePeriod: '300'
-  #     HealthCheckType: EC2
-  #     MaxSize: '3'
-  #     MinSize: '0'
-  #     VPCZoneIdentifier:
-  #     - !ImportValue !Sub "${VpcStackName}-SubnetPublicA"
-  #     - !ImportValue !Sub "${VpcStackName}-SubnetPublicB"
-  #     - !ImportValue !Sub "${VpcStackName}-SubnetPublicC"
-  #     LaunchConfigurationName:
-  #       Ref: lcSimpleWeb
-  #     MetricsCollection:
-  #     - Granularity: 1Minute
-  #       Metrics:
-  #       - GroupTerminatingInstances
-  #       - GroupInServiceInstances
-  #       - GroupMaxSize
-  #       - GroupDesiredCapacity
-  #       - GroupTotalInstances
-  #       - GroupMinSize
-  #       - GroupStandbyInstances
-  #       - GroupPendingInstances
-  #     TerminationPolicies:
-  #     - Default
+  asgAutoScaleSimpleWebServer:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AvailabilityZones: !GetAZs '' #VPC must enable subnets in all zones
+      Cooldown: '120'
+      DesiredCapacity: '0'
+      HealthCheckGracePeriod: '300'
+      HealthCheckType: EC2
+      MaxSize: '3'
+      MinSize: '0'
+      VPCZoneIdentifier:
+      - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicA"
+      - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicB"
+      - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicC"
+      LaunchConfigurationName:
+        Ref: lcSimpleWeb
+      MetricsCollection:
+      - Granularity: 1Minute
+        Metrics:
+        - GroupTerminatingInstances
+        - GroupInServiceInstances
+        - GroupMaxSize
+        - GroupDesiredCapacity
+        - GroupTotalInstances
+        - GroupMinSize
+        - GroupStandbyInstances
+        - GroupPendingInstances
+      TerminationPolicies:
+      - Default
   lcSimpleWeb:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
@@ -486,7 +486,7 @@ Resources:
   #     Dimensions:
   #     - Name: AutoScalingGroupName
   #       Value: Auto Scale Simple Web Server
-  # ingressSsh: 
+  # ingressSsh:
   #   Type: AWS::EC2::SecurityGroupIngress
   #   Properties:
   #     GroupId:
