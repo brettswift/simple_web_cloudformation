@@ -42,20 +42,14 @@ Resources:
       VpcId:
         Ref: VPC
       CidrBlock: 10.0.10.0/24
-      AvailabilityZone:
-        Fn::Select:
-        - '1'
-        - Fn::GetAZs: ''
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
   PublicSubnet3:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId:
         Ref: VPC
       CidrBlock: 10.0.20.0/24
-      AvailabilityZone:
-        Fn::Select:
-        - '2'
-        - Fn::GetAZs: ''
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
@@ -292,11 +286,9 @@ Outputs:
     Description: Public Subnets
     Value:
       Fn::Join:
-      - ''
+      - ','
       - - Ref: PublicSubnet1
-        - ", "
         - Ref: PublicSubnet2
-        - ", "
         - Ref: PublicSubnet3
     Export:
       Name: !Sub "${AWS::StackName}-PublicSubnets"
@@ -304,11 +296,9 @@ Outputs:
     Description: Private Subnets
     Value:
       Fn::Join:
-      - ''
+      - ','
       - - Ref: PrivateSubnet1
-        - ", "
         - Ref: PrivateSubnet2
-        - ", "
         - Ref: PrivateSubnet3
     Export:
       Name: !Sub "${AWS::StackName}-PrivateSubnets"
@@ -321,5 +311,4 @@ Outputs:
     Description: The security group ID to used for OS access
     Value: !GetAtt PrivateSG.GroupId
     Export:
-      Name:
-        Fn::Sub: "${AWS::StackName}-AccessSecurityGroupID"
+      Name: !Sub "${AWS::StackName}-AccessSecurityGroupID"
