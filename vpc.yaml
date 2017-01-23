@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-    VPC with 4 subnets across 2 Availability Zones.
+    VPC with 3 subnets across 3 Availability Zones.
     TODO make NAT gateways redundant in AZs
 Parameters:
   CorporateCidrIp:
@@ -40,30 +40,30 @@ Resources:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.0.0/24'
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
-  SubnetPublicB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Sub '10.${ClassB}.10.0/24'
-      AvailabilityZone: !Select [ 1, !GetAZs '' ]
-  SubnetPublicC:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Sub '10.${ClassB}.20.0/24'
-      AvailabilityZone: !Select [ 2, !GetAZs '' ]
   SubnetPrivateA:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.1.0/24'
       AvailabilityZone: !Select [0, !GetAZs '']
+  SubnetPublicB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Sub '10.${ClassB}.10.0/24'
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
   SubnetPrivateB:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.11.0/24'
       AvailabilityZone:  !Select [1, !GetAZs '']
+  SubnetPublicC:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Sub '10.${ClassB}.20.0/24'
+      AvailabilityZone: !Select [ 2, !GetAZs '' ]
   SubnetPrivateC:
     Type: AWS::EC2::Subnet
     Properties:
