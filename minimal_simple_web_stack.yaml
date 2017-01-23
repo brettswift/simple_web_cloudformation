@@ -436,56 +436,56 @@ Resources:
           Condition:
             StringEquals:
               AWS:SourceOwner: '845689384714'
-  # scalingDecreaseGroupSize:
-  #   Type: AWS::AutoScaling::ScalingPolicy
-  #   Properties:
-  #     AdjustmentType: ChangeInCapacity
-  #     PolicyType: SimpleScaling
-  #     ScalingAdjustment: -1
-  #     AutoScalingGroupName:
-  #       Ref: asgAutoScaleSimpleWebServer
-  # scalingIncreaseGroupSize:
-  #   Type: AWS::AutoScaling::ScalingPolicy
-  #   Properties:
-  #     AdjustmentType: ChangeInCapacity
-  #     Cooldown: '60'
-  #     PolicyType: SimpleScaling
-  #     ScalingAdjustment: 1
-  #     AutoScalingGroupName:
-  #       Ref: asgAutoScaleSimpleWebServer
-  # alarmCPUabove30:
-  #   Type: AWS::CloudWatch::Alarm
-  #   Properties:
-  #     ActionsEnabled: 'true'
-  #     ComparisonOperator: GreaterThanOrEqualToThreshold
-  #     EvaluationPeriods: '1'
-  #     MetricName: CPUUtilization
-  #     Namespace: AWS/EC2
-  #     Period: '60'
-  #     Statistic: Average
-  #     Threshold: '30.0'
-  #     AlarmActions:
-  #     - Ref: scalingIncreaseGroupSize
-  #     Dimensions:
-  #     - Name: AutoScalingGroupName
-  #       Value: Auto Scale Simple Web Server
-  # alarmCPUbelow20:
-  #   Type: AWS::CloudWatch::Alarm
-  #   Properties:
-  #     ActionsEnabled: 'true'
-  #     ComparisonOperator: LessThanOrEqualToThreshold
-  #     EvaluationPeriods: '2'
-  #     MetricName: CPUUtilization
-  #     Namespace: AWS/EC2
-  #     Period: '300'
-  #     Statistic: Average
-  #     Threshold: '20.0'
-  #     AlarmActions:
-  #     - arn:aws:sns:us-west-2:845689384714:CloudWatchVPC_CPU
-  #     - Ref: scalingDecreaseGroupSize
-  #     Dimensions:
-  #     - Name: AutoScalingGroupName
-  #       Value: Auto Scale Simple Web Server
+  scalingDecreaseGroupSize:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      PolicyType: SimpleScaling
+      ScalingAdjustment: -1
+      AutoScalingGroupName:
+        Ref: asgAutoScaleSimpleWebServer
+  scalingIncreaseGroupSize:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      Cooldown: '60'
+      PolicyType: SimpleScaling
+      ScalingAdjustment: 1
+      AutoScalingGroupName:
+        Ref: asgAutoScaleSimpleWebServer
+  alarmCPUabove30:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: 'true'
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      EvaluationPeriods: '1'
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Period: '60'
+      Statistic: Average
+      Threshold: '30.0'
+      AlarmActions:
+      - Ref: scalingIncreaseGroupSize
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value: Auto Scale Simple Web Server
+  alarmCPUbelow20:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      ActionsEnabled: 'true'
+      ComparisonOperator: LessThanOrEqualToThreshold
+      EvaluationPeriods: '2'
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Period: '300'
+      Statistic: Average
+      Threshold: '20.0'
+      AlarmActions:
+      - arn:aws:sns:us-west-2:845689384714:CloudWatchVPC_CPU
+      - Ref: scalingDecreaseGroupSize
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value: Auto Scale Simple Web Server
   # ingressSsh:
   #   Type: AWS::EC2::SecurityGroupIngress
   #   Properties:
@@ -502,11 +502,11 @@ Resources:
   #       Ref: sgCFvpcsecuritygroup
   #     IpProtocol: "-1"
   #     CidrIp: 0.0.0.0/0
-# Outputs:
-#   Subnet:
-#     Description: The subnet ID to use for web servers behind the LB
-#     Value:
-#       Ref: SubnetThreePrivate
-#     Export:
-#       Name:
-#         Fn::Sub: "${AWS::StackName}-SubnetID"
+Outputs:
+  URL:
+    Description: The URL of the website
+    Value:
+      Fn::Join:
+      - ''
+      - - http://
+        - !GetAtt elbSimpleWebLoadBalancer.DNSName
