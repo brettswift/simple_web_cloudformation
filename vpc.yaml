@@ -40,35 +40,35 @@ Resources:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.0.0/24'
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
-  SubnetPrivateA:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Sub '10.${ClassB}.1.0/24'
-      AvailabilityZone: !Select [0, !GetAZs '']
   SubnetPublicB:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: !Sub '10.${ClassB}.10.0/24'
+      CidrBlock: !Sub '10.${ClassB}.20.0/24'
       AvailabilityZone: !Select [ 1, !GetAZs '' ]
-  SubnetPrivateB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: !Sub '10.${ClassB}.11.0/24'
-      AvailabilityZone:  !Select [1, !GetAZs '']
   SubnetPublicC:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: !Sub '10.${ClassB}.20.0/24'
+      CidrBlock: !Sub '10.${ClassB}.40.0/24'
       AvailabilityZone: !Select [ 2, !GetAZs '' ]
+  SubnetPrivateA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Sub '10.${ClassB}.10.0/24'
+      AvailabilityZone: !Select [0, !GetAZs '']
+  SubnetPrivateB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Sub '10.${ClassB}.30.0/24'
+      AvailabilityZone:  !Select [1, !GetAZs '']
   SubnetPrivateC:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      CidrBlock: !Sub '10.${ClassB}.21.0/24'
+      CidrBlock: !Sub '10.${ClassB}.50.0/24'
       AvailabilityZone:  !Select [1, !GetAZs '']
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
