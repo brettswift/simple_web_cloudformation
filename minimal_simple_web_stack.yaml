@@ -410,8 +410,8 @@ Resources:
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicA"
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicB"
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicC"
-      SecurityGroups:
-      - Ref: sgInstanceSecurityGroup
+      SecurityGroups: #import web access security group from the VPC
+      - Fn::ImportValue: !Sub "${VpcStackName}-WebAccessSecurityGroupId"
   lblSimpleWebLoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -465,14 +465,13 @@ Resources:
       VpcId:
         Fn::ImportValue:
           !Sub "${VpcStackName}-VpcId"
-      SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: '22'
-        ToPort: '22'
-        CidrIp: !Ref SSHLocation #TODO: redundant to the ACL from the VPC ? Or rather this should only be allowed from the VPC
-      - IpProtocol: tcp
-        FromPort: '80'
-        ToPort: '80'
+  # sgAppLoadBalancerSecurityGroup:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties:
+  #     GroupDescription: Allows access to Application Load Balancer
+  #     VpcId:
+  #       Fn::ImportValue:
+  #         !Sub "${VpcStackName}-VpcId"
   sgiIngressSsh:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
@@ -481,6 +480,15 @@ Resources:
       IpProtocol: tcp
       FromPort: '22'
       ToPort: '22'
+      CidrIp: 0.0.0.0/0
+  sgiIngressHttp:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Ref: sgInstanceSecurityGroup
+      IpProtocol: tcp
+      FromPort: '8000'
+      ToPort: '8000'
       CidrIp: 0.0.0.0/0
   sgeEgressInternet:
     Type: AWS::EC2::SecurityGroupEgress
