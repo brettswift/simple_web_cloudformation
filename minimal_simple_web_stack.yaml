@@ -435,14 +435,14 @@ Resources:
       - IpProtocol: tcp
         FromPort: '8000'
         ToPort: '8000'
-        # SourceSecurityGroupOwnerId:
-        #   Fn::GetAtt:
-        #   - elbSimpleWebLoadBalancer
-        #   - SourceSecurityGroup.OwnerAlias
-        # SourceSecurityGroupName:
-        #   Fn::GetAtt:
-        #   - elbSimpleWebLoadBalancer
-        #   - SourceSecurityGroup.GroupName
+        SourceSecurityGroupOwnerId:
+          Fn::GetAtt:
+          - elbSimpleWebLoadBalancer
+          - SourceSecurityGroup.OwnerAlias
+        SourceSecurityGroupName:
+          Fn::GetAtt:
+          - elbSimpleWebLoadBalancer
+          - SourceSecurityGroup.GroupName
   sgiIngressSsh:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
