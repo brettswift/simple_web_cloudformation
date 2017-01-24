@@ -471,8 +471,8 @@ Resources:
         ToPort: '22'
         CidrIp: !Ref SSHLocation #TODO: redundant to the ACL from the VPC ? Or rather this should only be allowed from the VPC
       - IpProtocol: tcp
-        FromPort: '8000'
-        ToPort: '8000'
+        FromPort: '80'
+        ToPort: '80'
   sgiIngressSsh:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
