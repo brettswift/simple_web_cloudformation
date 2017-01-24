@@ -344,20 +344,68 @@ Resources:
         - GroupPendingInstances
       TerminationPolicies:
       - Default
+  # lcSimpleWeb:
+  #   Type: AWS::AutoScaling::LaunchConfiguration
+  #   Properties:
+  #     AssociatePublicIpAddress: true
+  #     ImageId: ami-1e299d7e #TODO parameterize
+  #     InstanceType: !Sub "${InstanceType}"
+  #     KeyName: !Sub "${KeyName}"
+  #     InstanceMonitoring: 'true'
+  #     SecurityGroups: #are assigned to ec2 instances
+  #     - Ref: sgInstanceSecurityGroup
+  #     BlockDeviceMappings:
+  #     - DeviceName: "/dev/xvda"
+  #       Ebs:
+  #         VolumeSize: 8
   lcSimpleWeb:
     Type: AWS::AutoScaling::LaunchConfiguration
+    Metadata:
+      Comment: Install a simple application
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            yum:
+              stress: []
+          # services:
+          #   sysvinit:
+          #     httpd:
+          #       enabled: 'true'
+          #       ensureRunning: 'true'
+          #     cfn-hup: #allows changes on update stack
+          #       enabled: 'true'
+          #       ensureRunning: 'true'
+          #       files:
+          #       - "/etc/cfn/cfn-hup.conf"
+          #       - "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
     Properties:
-      AssociatePublicIpAddress: true
-      ImageId: ami-1e299d7e #TODO parameterize
-      InstanceType: !Sub "${InstanceType}"
       KeyName: !Sub "${KeyName}"
-      InstanceMonitoring: 'true'
-      SecurityGroups: #are assigned to ec2 instances
-      - Ref: sgInstanceSecurityGroup
-      BlockDeviceMappings:
-      - DeviceName: "/dev/xvda"
-        Ebs:
-          VolumeSize: 8
+      ImageId:
+        Fn::FindInMap:
+        - AWSRegionArch2AMI
+        - Ref: AWS::Region
+        - Fn::FindInMap:
+          - AWSInstanceType2Arch
+          - Ref: InstanceType
+          - Arch
+      SecurityGroups:
+      - Ref: sgInstanceSecurityGroup #TODO add VPC security groups
+      InstanceType: !Ref InstanceType
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+          - ''
+          - - "#!/bin/bash -xe\n"
+            - "yum update -y aws-cfn-bootstrap\n"
+            - "mkdir /var/simpleweb\n"
+            - "cd /var/simpleweb\n"
+            - "nohup python -m SimpleHTTPServer 8000 & 2>&1\n"
+            - "echo \"hello from `dig +short myip.opendns.com @resolver1.opendns.com`\" \n"
+            - "  > /var/simpleweb/index.html\n"
+            - "echo 'healthy' > /var/simpleweb/health.html\n"
+            - "yum install stress -y\n"
+            - "nohup stress --cpu 2 --timeout 600 & 2>&1\n"
+            - "\n"
   snsCloudWatchCPU:
     Type: AWS::SNS::Topic
     Properties:
@@ -389,7 +437,7 @@ Resources:
       - IpProtocol: tcp
         FromPort: '22'
         ToPort: '22'
-        CidrIp: !Ref SSHLocation
+        CidrIp: !Ref SSHLocation #TODO: redundant to the ACL from the VPC ?
       - IpProtocol: tcp
         FromPort: '8000'
         ToPort: '8000'
