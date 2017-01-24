@@ -377,8 +377,8 @@ Resources:
       MaxSize: '3'
       MinSize: '0'
       TargetGroupARNs:
-      # - tgSimpleWebTarget
-      - SimpleWebTargets
+      - tgSimpleWebTarget
+      # - SimpleWebTargets
       # - !GetAtt tgSimpleWebTarget.LoadB
       VPCZoneIdentifier:
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicA"
