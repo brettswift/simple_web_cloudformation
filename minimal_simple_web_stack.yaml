@@ -315,37 +315,6 @@ Resources:
   #   Type: AWS::EC2::EIP
   #   Properties:
   #     Domain: vpc
-  asgAutoScaleSimpleWebServer:
-    Type: AWS::AutoScaling::AutoScalingGroup
-    Properties:
-      AvailabilityZones: !GetAZs '' #VPC must enable subnets in all zones
-      Cooldown: '120'
-      DesiredCapacity: '0'
-      HealthCheckGracePeriod: '300'
-      HealthCheckType: EC2
-      MaxSize: '3'
-      MinSize: '0'
-      TargetGroupARNs:
-      - tgSimpleWebTarget
-      VPCZoneIdentifier:
-      - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicA"
-      - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicB"
-      - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicC"
-      LaunchConfigurationName:
-        Ref: lcSimpleWeb
-      MetricsCollection:
-      - Granularity: 1Minute
-        Metrics:
-        - GroupTerminatingInstances
-        - GroupInServiceInstances
-        - GroupMaxSize
-        - GroupDesiredCapacity
-        - GroupTotalInstances
-        - GroupMinSize
-        - GroupStandbyInstances
-        - GroupPendingInstances
-      TerminationPolicies:
-      - Default
   lcSimpleWeb:
     Type: AWS::AutoScaling::LaunchConfiguration
     Metadata:
@@ -397,13 +366,39 @@ Resources:
             - "yum install stress -y\n"
             - "nohup stress --cpu 2 --timeout 600 & 2>&1\n"
             - "\n"
-  snsCloudWatchCPU:
-    Type: AWS::SNS::Topic
+  asgAutoScaleSimpleWebServer:
+    Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      DisplayName: CloudWatchVPC_CPU
-      # Subscription:
-      # - Endpoint: brettswift@gmail.com
-      #   Protocol: email
+      AvailabilityZones: !GetAZs '' #VPC must enable subnets in all zones
+      Cooldown: '120'
+      DesiredCapacity: '0'
+      HealthCheckGracePeriod: '300'
+      HealthCheckType: EC2
+      MaxSize: '3'
+      MinSize: '0'
+      TargetGroupARNs:
+      # - tgSimpleWebTarget
+      - SimpleWebTargets
+      # - !GetAtt tgSimpleWebTarget.LoadB
+      VPCZoneIdentifier:
+      - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicA"
+      - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicB"
+      - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicC"
+      LaunchConfigurationName:
+        Ref: lcSimpleWeb
+      MetricsCollection:
+      - Granularity: 1Minute
+        Metrics:
+        - GroupTerminatingInstances
+        - GroupInServiceInstances
+        - GroupMaxSize
+        - GroupDesiredCapacity
+        - GroupTotalInstances
+        - GroupMinSize
+        - GroupStandbyInstances
+        - GroupPendingInstances
+      TerminationPolicies:
+      - Default
   albSimpleWebAppLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -428,7 +423,7 @@ Resources:
   tgSimpleWebTarget:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: tgSimpleWebTarget
+      Name: SimpleWebTargets
       HealthCheckIntervalSeconds: 60
       UnhealthyThresholdCount: 2
       HealthCheckPath: /
@@ -437,8 +432,8 @@ Resources:
       VpcId:
         Fn::ImportValue:
           !Sub "${VpcStackName}-VpcId"
-    DependsOn:
-    - albSimpleWebAppLoadBalancer
+    # DependsOn:
+    # - albSimpleWebAppLoadBalancer
   sgInstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -471,6 +466,13 @@ Resources:
         Ref: sgInstanceSecurityGroup
       IpProtocol: "-1"
       CidrIp: 0.0.0.0/0
+  snsCloudWatchCPU:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: CloudWatchVPC_CPU
+      # Subscription:
+      # - Endpoint: brettswift@gmail.com
+      #   Protocol: email
   snspolicyCloudWatchVPCCPU:
     Type: AWS::SNS::TopicPolicy
     Properties:
