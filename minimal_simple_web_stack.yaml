@@ -326,7 +326,7 @@ Resources:
       MaxSize: '3'
       MinSize: '0'
       TargetGroupARNs:
-      - albSimpleWebAppLoadBalancer
+      - tgSimpleWebTarget
       VPCZoneIdentifier:
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicA"
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicB"
