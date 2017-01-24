@@ -40,44 +40,68 @@ Resources:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.0.0/24'
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: SubnetPublicA
   SubnetPublicB:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.20.0/24'
       AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: SubnetPublicB
   SubnetPublicC:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.40.0/24'
       AvailabilityZone: !Select [ 2, !GetAZs '' ]
+      Tags:
+        - Key: Name
+          Value: SubnetPublicC
   SubnetPrivateA:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.10.0/24'
       AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: SubnetPrivateA
   SubnetPrivateB:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.30.0/24'
       AvailabilityZone:  !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: SubnetPrivateB
   SubnetPrivateC:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.50.0/24'
       AvailabilityZone:  !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: SubnetPrivateC
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: PublicRouteTable
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: PrivateRouteTable
   PublicRoute:
     Type: AWS::EC2::Route
     Properties:
@@ -126,11 +150,14 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: MainVPC
+          Value: PublicSubnetAcl
   PrivateSubnetAcl:
     Type: AWS::EC2::NetworkAcl
     Properties:
       VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: PrivateSubnetAcl
   PublicInSubnetAclEntry:
     Type: AWS::EC2::NetworkAclEntry
     Properties:
@@ -139,7 +166,8 @@ Resources:
       Protocol: "-1"
       RuleAction: allow
       Egress: 'false'
-      CidrBlock: 0.0.0.0/0
+      CidrBlock:
+        Ref: CorporateCidrIp
       Icmp:
         Code: "-1"
         Type: "-1"
@@ -192,25 +220,35 @@ Resources:
       PortRange:
         From: '1'
         To: '65535'
-  PublicSubnetAclAssociation1:
+  PublicSubnetAclAssociationA:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
       SubnetId: !Ref SubnetPublicA
       NetworkAclId: !Ref PublicSubnetAcl
-  PublicSubnetAclAssociation2:
+  PublicSubnetAclAssociationB:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
       SubnetId: !Ref SubnetPublicB
       NetworkAclId: !Ref PublicSubnetAcl
-  PrivateSubnetAclAssociation1:
+  PublicSubnetAclAssociationC:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublicC
+      NetworkAclId: !Ref PublicSubnetAcl
+  PrivateSubnetAclAssociationA:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
       SubnetId: !Ref SubnetPrivateA
       NetworkAclId: !Ref PrivateSubnetAcl
-  PrivateSubnetAclAssociation2:
+  PrivateSubnetAclAssociationB:
     Type: AWS::EC2::SubnetNetworkAclAssociation
     Properties:
       SubnetId: !Ref SubnetPrivateB
+      NetworkAclId: !Ref PrivateSubnetAcl
+  PrivateSubnetAclAssociationC:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateC
       NetworkAclId: !Ref PrivateSubnetAcl
   NAT1:
     DependsOn: AttachGateway
