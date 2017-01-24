@@ -84,7 +84,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.50.0/24'
-      AvailabilityZone:  !Select [1, !GetAZs '']
+      AvailabilityZone:  !Select [2, !GetAZs '']
       Tags:
         - Key: Name
           Value: SubnetPrivateC
