@@ -388,8 +388,8 @@ Resources:
           - AWSInstanceType2Arch
           - Ref: InstanceType
           - Arch
-      SecurityGroups:
-      - Ref: sgInstanceSecurityGroup #TODO add VPC security groups
+      # SecurityGroups:
+      # - Ref: sgInstanceSecurityGroup #TODO add VPC security groups
       InstanceType: !Ref InstanceType
       UserData:
         Fn::Base64:
@@ -501,7 +501,7 @@ Resources:
       ScalingAdjustment: 1
       AutoScalingGroupName:
         Ref: asgAutoScaleSimpleWebServer
-  alarmCPUabove30:
+  alarmCPUaboveThreshold:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: 'true'
@@ -517,7 +517,7 @@ Resources:
       Dimensions:
       - Name: AutoScalingGroupName
         Value: Auto Scale Simple Web Server
-  alarmCPUbelow20:
+  alarmCPUbelowThreshold:
     Type: AWS::CloudWatch::Alarm
     Properties:
       ActionsEnabled: 'true'
