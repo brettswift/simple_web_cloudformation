@@ -376,8 +376,8 @@ Resources:
           - AWSInstanceType2Arch
           - Ref: InstanceType
           - Arch
-      # SecurityGroups: #groupName & subnet can't be used together.  How we do this?
-      # - Ref: sgInstanceSecurityGroup #TODO add VPC security groups
+      SecurityGroups: #groupName & subnet can't be used together.  How we do this?
+      - Ref: sgInstanceSecurityGroup #TODO add VPC security groups
       InstanceType: !Ref InstanceType
       InstanceMonitoring: 'true'
       UserData:
@@ -429,7 +429,7 @@ Resources:
       - IpProtocol: tcp
         FromPort: '22'
         ToPort: '22'
-        CidrIp: !Ref SSHLocation #TODO: redundant to the ACL from the VPC ?
+        CidrIp: !Ref SSHLocation #TODO: redundant to the ACL from the VPC ? Or rather this should only be allowed from the VPC
       - IpProtocol: tcp
         FromPort: '8000'
         ToPort: '8000'
@@ -441,13 +441,6 @@ Resources:
           Fn::GetAtt:
           - elbSimpleWebLoadBalancer
           - SourceSecurityGroup.GroupName
-
-  # sgCFvpcsecuritygroup:
-  #   Type: AWS::EC2::SecurityGroup
-  #   Properties:
-  #     GroupDescription: security group for websites on this VPC
-  #     VpcId:
-  #       Ref: VPC
   snspolicyCloudWatchVPCCPU:
     Type: AWS::SNS::TopicPolicy
     Properties:
