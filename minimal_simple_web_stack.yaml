@@ -437,27 +437,6 @@ Resources:
           !Sub "${VpcStackName}-VpcId"
     DependsOn:
     - albSimpleWebAppLoadBalancer
-  # old ELB - delete when ALB above is working
-  # elbSimpleWebLoadBalancer:
-  #   Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-  #   Properties:
-  #     Subnets:
-  #     - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicA"
-  #     - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicB"
-  #     - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicC"
-  #     CrossZone: 'true'
-  #     Listeners:
-  #     - LoadBalancerPort: '80'
-  #       InstancePort: '80'
-  #       Protocol: HTTP
-  #     HealthCheck:
-  #       Target: HTTP:8000/health.html
-  #       HealthyThreshold: '3'
-  #       UnhealthyThreshold: '5'
-  #       Interval: '30'
-  #       Timeout: '5'
-  #     SecurityGroups:
-  #     - Ref: sgInstanceSecurityGroup
   sgInstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -465,13 +444,6 @@ Resources:
       VpcId:
         Fn::ImportValue:
           !Sub "${VpcStackName}-VpcId"
-  # sgAppLoadBalancerSecurityGroup:
-  #   Type: AWS::EC2::SecurityGroup
-  #   Properties:
-  #     GroupDescription: Allows access to Application Load Balancer
-  #     VpcId:
-  #       Fn::ImportValue:
-  #         !Sub "${VpcStackName}-VpcId"
   sgiIngressSsh:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
