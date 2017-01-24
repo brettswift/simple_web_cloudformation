@@ -325,8 +325,8 @@ Resources:
       HealthCheckType: EC2
       MaxSize: '3'
       MinSize: '0'
-      LoadBalancerNames:
-        Ref: albSimpleWebAppLoadBalancer
+      TargetGroupARNs:
+      - albSimpleWebAppLoadBalancer
       VPCZoneIdentifier:
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicA"
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicB"
