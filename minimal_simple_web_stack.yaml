@@ -533,7 +533,7 @@ Resources:
       - Ref: scalingIncreaseGroupSize
       Dimensions:
       - Name: AutoScalingGroupName
-        Value: Auto Scale Simple Web Server
+        Value: asgAutoScaleSimpleWebServer
   alarmCPUbelowThreshold:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -550,7 +550,7 @@ Resources:
       - Ref: scalingDecreaseGroupSize
       Dimensions:
       - Name: AutoScalingGroupName
-        Value: Auto Scale Simple Web Server
+        Value: asgAutoScaleSimpleWebServer
 Outputs:
   URL:
     Description: The URL of the website
