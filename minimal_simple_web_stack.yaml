@@ -344,20 +344,6 @@ Resources:
         - GroupPendingInstances
       TerminationPolicies:
       - Default
-  # lcSimpleWeb:
-  #   Type: AWS::AutoScaling::LaunchConfiguration
-  #   Properties:
-  #     AssociatePublicIpAddress: true
-  #     ImageId: ami-1e299d7e #TODO parameterize
-  #     InstanceType: !Sub "${InstanceType}"
-  #     KeyName: !Sub "${KeyName}"
-  #     InstanceMonitoring: 'true'
-  #     SecurityGroups: #are assigned to ec2 instances
-  #     - Ref: sgInstanceSecurityGroup
-  #     BlockDeviceMappings:
-  #     - DeviceName: "/dev/xvda"
-  #       Ebs:
-  #         VolumeSize: 8
   lcSimpleWeb:
     Type: AWS::AutoScaling::LaunchConfiguration
     Metadata:
@@ -366,12 +352,13 @@ Resources:
         config:
           packages:
             yum:
-              stress: []
+              stress: [] #TODO redundant b/c of user data.  Test this syntax.
           # services:
           #   sysvinit:
           #     httpd:
           #       enabled: 'true'
           #       ensureRunning: 'true'
+          #     #TODO: make use of service restarts on stack updates.
           #     cfn-hup: #allows changes on update stack
           #       enabled: 'true'
           #       ensureRunning: 'true'
@@ -380,6 +367,7 @@ Resources:
           #       - "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
     Properties:
       KeyName: !Sub "${KeyName}"
+      AssociatePublicIpAddress: true
       ImageId:
         Fn::FindInMap:
         - AWSRegionArch2AMI
@@ -388,9 +376,10 @@ Resources:
           - AWSInstanceType2Arch
           - Ref: InstanceType
           - Arch
-      # SecurityGroups:
+      # SecurityGroups: #groupName & subnet can't be used together.  How we do this?
       # - Ref: sgInstanceSecurityGroup #TODO add VPC security groups
       InstanceType: !Ref InstanceType
+      InstanceMonitoring: 'true'
       UserData:
         Fn::Base64:
           Fn::Join:
@@ -400,7 +389,7 @@ Resources:
             - "mkdir /var/simpleweb\n"
             - "cd /var/simpleweb\n"
             - "nohup python -m SimpleHTTPServer 8000 & 2>&1\n"
-            - "echo \"hello from `dig +short myip.opendns.com @resolver1.opendns.com`\" \n"
+            - "echo \"hello from `dig +short myip.opendns.com @resolver1.opendns.com`\" "
             - "  > /var/simpleweb/index.html\n"
             - "echo 'healthy' > /var/simpleweb/health.html\n"
             - "yum install stress -y\n"
@@ -433,6 +422,9 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable SSH access and HTTP from the load balancer only
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${VpcStackName}-VpcId"
       SecurityGroupIngress:
       - IpProtocol: tcp
         FromPort: '22'
