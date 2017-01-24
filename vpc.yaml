@@ -169,7 +169,8 @@ Resources:
       Protocol: "-1"
       RuleAction: allow
       Egress: 'false'
-      CidrBlock: 0.0.0.0/0
+      CidrBlock:
+        Ref: CorporateCidrIp
       Icmp:
         Code: "-1"
         Type: "-1"
@@ -249,14 +250,26 @@ Resources:
       - IpProtocol: tcp
         FromPort: '3389'
         ToPort: '3389'
-        CidrIp: 0.0.0.0/0
-      - IpProtocol: icmp
-        FromPort: "-1"
-        ToPort: "-1"
-        CidrIp: 0.0.0.0/0
+        CidrIp:
+          Ref: CorporateCidrIp
       Tags:
         - Key: Name
           Value: MachineAccess
+  WebAccessSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Access Web Ports
+      VpcId:
+        Ref: VPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '80'
+        ToPort: '80'
+        CidrIp:
+          Ref: CorporateCidrIp
+      Tags:
+        - Key: Name
+          Value: WebAccess
 Outputs:
   VPC:
     Description: VPC
@@ -291,7 +304,12 @@ Outputs:
     Description: The security group ID to used for OS access
     Value: !GetAtt PrivateSG.GroupId
     Export:
-      Name: !Sub "${AWS::StackName}-AccessSecurityGroupID"
+      Name: !Sub "${AWS::StackName}-AccessSecurityGroupId"
+  WebAccessSecurityGroup:
+    Description: The security group ID to used for OS access
+    Value: !GetAtt WebAccessSecurityGroup.GroupId
+    Export:
+      Name: !Sub "${AWS::StackName}-WebAccessSecurityGroupId"
   SubnetPublicA:
     Description: 'Subnet A public.'
     Value: !Ref SubnetPublicA
