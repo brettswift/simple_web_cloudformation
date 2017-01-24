@@ -378,8 +378,8 @@ Resources:
           - AWSInstanceType2Arch
           - Ref: InstanceType
           - Arch
-      SecurityGroups: #groupName & subnet can't be used together.  How we do this?
-      - Ref: sgInstanceSecurityGroup #TODO add VPC security groups
+      SecurityGroups:
+      - Ref: sgInstanceSecurityGroup
       InstanceType: !Ref InstanceType
       InstanceMonitoring: 'true'
       UserData:
