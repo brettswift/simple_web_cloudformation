@@ -403,7 +403,7 @@ Resources:
       - Endpoint: brettswift@gmail.com
         Protocol: email
   elbSimpleWebLoadBalancer:
-    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Subnets:
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicA"
