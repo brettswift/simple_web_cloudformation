@@ -405,8 +405,10 @@ Resources:
   elbSimpleWebLoadBalancer:
     Type: AWS::ElasticLoadBalancing::LoadBalancer
     Properties:
-      AvailabilityZones:
-        Fn::GetAZs: ''
+      Subnets:
+      - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicA"
+      - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicB"
+      - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicC"
       CrossZone: 'true'
       Listeners:
       - LoadBalancerPort: '80'
@@ -433,14 +435,30 @@ Resources:
       - IpProtocol: tcp
         FromPort: '8000'
         ToPort: '8000'
-        SourceSecurityGroupOwnerId:
-          Fn::GetAtt:
-          - elbSimpleWebLoadBalancer
-          - SourceSecurityGroup.OwnerAlias
-        SourceSecurityGroupName:
-          Fn::GetAtt:
-          - elbSimpleWebLoadBalancer
-          - SourceSecurityGroup.GroupName
+        # SourceSecurityGroupOwnerId:
+        #   Fn::GetAtt:
+        #   - elbSimpleWebLoadBalancer
+        #   - SourceSecurityGroup.OwnerAlias
+        # SourceSecurityGroupName:
+        #   Fn::GetAtt:
+        #   - elbSimpleWebLoadBalancer
+        #   - SourceSecurityGroup.GroupName
+  sgiIngressSsh:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId:
+        Ref: sgInstanceSecurityGroup
+      IpProtocol: tcp
+      FromPort: '22'
+      ToPort: '22'
+      CidrIp: 0.0.0.0/0
+  sgeEgressInternet:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId:
+        Ref: sgInstanceSecurityGroup
+      IpProtocol: "-1"
+      CidrIp: 0.0.0.0/0
   snspolicyCloudWatchVPCCPU:
     Type: AWS::SNS::TopicPolicy
     Properties:
@@ -519,22 +537,6 @@ Resources:
       Dimensions:
       - Name: AutoScalingGroupName
         Value: Auto Scale Simple Web Server
-  # ingressSsh:
-  #   Type: AWS::EC2::SecurityGroupIngress
-  #   Properties:
-  #     GroupId:
-  #       Ref: sgCFvpcsecuritygroup
-  #     IpProtocol: tcp
-  #     FromPort: '22'
-  #     ToPort: '22'
-  #     CidrIp: 0.0.0.0/0
-  # egressInternet:
-  #   Type: AWS::EC2::SecurityGroupEgress
-  #   Properties:
-  #     GroupId:
-  #       Ref: sgCFvpcsecuritygroup
-  #     IpProtocol: "-1"
-  #     CidrIp: 0.0.0.0/0
 Outputs:
   URL:
     Description: The URL of the website
