@@ -379,7 +379,7 @@ Resources:
       TargetGroupARNs:
       # - tgSimpleWebTarget
       # - SimpleWebTargets
-      - !GetAtt tgSimpleWebTarget.TargetGroupFullName
+      - Ref: tgSimpleWebTarget
       VPCZoneIdentifier:
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicA"
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicB"
