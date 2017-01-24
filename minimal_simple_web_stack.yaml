@@ -426,11 +426,7 @@ Resources:
   tgSimpleWebTarget:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name:
-        Fn::Join:
-        - "-"
-        - - Ref: AWS::StackName
-          - tgSimpleWebTarget
+      Name: tgSimpleWebTarget
       HealthCheckIntervalSeconds: 60
       UnhealthyThresholdCount: 2
       HealthCheckPath: /
