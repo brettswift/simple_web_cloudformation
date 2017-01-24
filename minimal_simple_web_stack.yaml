@@ -420,6 +420,8 @@ Resources:
         UnhealthyThreshold: '5'
         Interval: '30'
         Timeout: '5'
+      SecurityGroups:
+      - Ref: sgInstanceSecurityGroup
   sgInstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -435,14 +437,6 @@ Resources:
       - IpProtocol: tcp
         FromPort: '8000'
         ToPort: '8000'
-        SourceSecurityGroupOwnerId:
-          Fn::GetAtt:
-          - elbSimpleWebLoadBalancer
-          - SourceSecurityGroup.OwnerAlias
-        SourceSecurityGroupName:
-          Fn::GetAtt:
-          - elbSimpleWebLoadBalancer
-          - SourceSecurityGroup.GroupName
   sgiIngressSsh:
     Type: AWS::EC2::SecurityGroupIngress
     Properties:
