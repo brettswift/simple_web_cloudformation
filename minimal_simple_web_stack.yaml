@@ -399,29 +399,69 @@ Resources:
     Type: AWS::SNS::Topic
     Properties:
       DisplayName: CloudWatchVPC_CPU
-      Subscription:
-      - Endpoint: brettswift@gmail.com
-        Protocol: email
-  elbSimpleWebLoadBalancer:
+      # Subscription:
+      # - Endpoint: brettswift@gmail.com
+      #   Protocol: email
+  albSimpleWebAppLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
+      Scheme: internet-facing
       Subnets:
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicA"
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicB"
       - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicC"
-      CrossZone: 'true'
-      Listeners:
-      - LoadBalancerPort: '80'
-        InstancePort: '80'
-        Protocol: HTTP
-      HealthCheck:
-        Target: HTTP:8000/health.html
-        HealthyThreshold: '3'
-        UnhealthyThreshold: '5'
-        Interval: '30'
-        Timeout: '5'
       SecurityGroups:
       - Ref: sgInstanceSecurityGroup
+  lblSimpleWebLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn:
+          Ref: tgSimpleWebTarget
+      LoadBalancerArn:
+        Ref: albSimpleWebAppLoadBalancer
+      Port: 80
+      Protocol: HTTP
+  tgSimpleWebTarget:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name:
+        Fn::Join:
+        - "-"
+        - - Ref: AWS::StackName
+          - tgSimpleWebTarget
+      HealthCheckIntervalSeconds: 60
+      UnhealthyThresholdCount: 2
+      HealthCheckPath: /
+      Port: 8000
+      Protocol: HTTP
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${VpcStackName}-VpcId"
+    DependsOn:
+    - albSimpleWebAppLoadBalancer
+  # old ELB - delete when ALB above is working
+  # elbSimpleWebLoadBalancer:
+  #   Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+  #   Properties:
+  #     Subnets:
+  #     - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicA"
+  #     - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicB"
+  #     - Fn::ImportValue: !Sub "${VpcStackName}-SubnetPublicC"
+  #     CrossZone: 'true'
+  #     Listeners:
+  #     - LoadBalancerPort: '80'
+  #       InstancePort: '80'
+  #       Protocol: HTTP
+  #     HealthCheck:
+  #       Target: HTTP:8000/health.html
+  #       HealthyThreshold: '3'
+  #       UnhealthyThreshold: '5'
+  #       Interval: '30'
+  #       Timeout: '5'
+  #     SecurityGroups:
+  #     - Ref: sgInstanceSecurityGroup
   sgInstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -538,4 +578,4 @@ Outputs:
       Fn::Join:
       - ''
       - - http://
-        - !GetAtt elbSimpleWebLoadBalancer.DNSName
+        - !GetAtt albSimpleWebAppLoadBalancer.DNSName
