@@ -77,10 +77,13 @@ Metadata:
           - Branch
           - Email
       - Label:
+          default: "Stack Config File (vpc.yaml)"
+        Parameters:
+          - TemplateFileName
+      - Label:
           default: "Test Stack Settings"
         Parameters:
           - TestStackName
-          - TemplateFileName
           - TestStackConfig
       - Label:
           default: "Production Stack Settings"
