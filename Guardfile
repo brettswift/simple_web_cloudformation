@@ -7,13 +7,14 @@ scope group: :validation
 
 group :validation do
   guard :shell do
-    watch /.*\.template$/ do |m|
+    watch /.*\.yaml$/ do |m|
       # if system("aws cloudformation validate-template --template-body file:////Users/bswift/src/aws/simple_web_auto_scaling/#{m[0]}")
-      if system("aws cloudformation validate-template --template-body file:////Users/bswift/src/aws/simple_web_auto_scaling/vpc.template")
-        n "#{m[0]} is correct", 'Template Validation', :success
-      else
-        n "#{m[0]} is incorrect", 'Template Validation', :failed
-      end
+      `aws cloudformation validate-template --template-body file:////Users/bswift/src/aws/simple_web_auto_scaling/#{m[0]}`
+      # if system("aws cloudformation validate-template --template-body file:////Users/bswift/src/aws/simple_web_auto_scaling/*.yaml")
+      #   n "#{m[0]} is correct", 'Template Validation', :success
+      # else
+      #   n "#{m[0]} is incorrect", 'Template Validation', :failed
+      # end
     end
   end
 end
