@@ -48,7 +48,7 @@ Resources:
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
       Tags:
         - Key: Name
-          Value: !Sub ${NetworkName} Subnet PublicA
+          Value: !Sub ${NetworkName} Subnet Public A
   SubnetPublicB:
     Type: AWS::EC2::Subnet
     Properties:
