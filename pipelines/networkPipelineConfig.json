@@ -1,7 +1,6 @@
 {
   "Parameters" : {
     "GithubUser" : "brettswift",
-    "GithubToken" : "bf95362ff55e29ab26d25bcdedb05ec73306dce6",
     "Repo" : "simple_web_cloudformation",
     "Branch" : "master",
     "Email" : "brettswift@gmail.com"
