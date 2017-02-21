@@ -1,0 +1,6 @@
+{
+  "Parameters" : {
+    "NetworkName" : "PipelineTestVPC",
+    "ClassB" : "10"
+  }
+}

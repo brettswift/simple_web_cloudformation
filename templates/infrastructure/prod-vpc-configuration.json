@@ -1,0 +1,6 @@
+{
+  "Parameters" : {
+    "NetworkName" : "ProdVpc",
+    "ClassB" : "200"
+  }
+}
