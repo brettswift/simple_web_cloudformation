@@ -1,6 +1,7 @@
 {
   "Parameters" : {
     "NetworkName" : "ProdVpc",
-    "ClassB" : "200"
+    "ClassB" : "200",
+    "EnvType": "prod"
   }
 }
