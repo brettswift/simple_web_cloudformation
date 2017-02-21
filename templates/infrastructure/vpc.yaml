@@ -19,6 +19,14 @@ Parameters:
       Description: A name that will be prefixed to network resource names
       Type: String
       Default: MyNetwork
+  EnvType:
+    Description: Environment type.
+    Type: String
+    AllowedValues:
+      - prod
+      - test
+Conditions:
+  CreateProdResources: !Equals [ !Ref EnvType, prod ]
 Resources:
   VPC:
     Type: AWS::EC2::VPC

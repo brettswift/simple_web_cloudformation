@@ -1,18 +1,19 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Description: >
-  AWS CloudFormation Sample Template Continuous Delievery: This template
+  Modified from the:
+    AWS CloudFormation Sample Template Continuous Delievery: This template
   builds an AWS CodePipeline pipeline that implements a continuous delivery release
-  process for AWS CloudFormation stacks. Submit a CloudFormation source artifact
+  process for AWS CloudFormation stacks. Submits a CloudFormation source artifact
   to an Amazon S3 location before building the pipeline. The pipeline uses the
   artifact to automatically create stacks and change sets.
-  **WARNING** This template creates an Amazon EC2 instance. You will be billed
-  for the AWS resources used when you create a stack using this template.
-
+    This is intended as a potential reference implementation of our network and pipeline.
+    When deleting, delete the VPC stacks first, as deleting this stack will delete the roles required.
 Parameters:
   PipelineName:
     Description: A name for the pipeline
     Type: String
+    Default: "MainNetwork"
   GithubUser:
     Description: Github account where the source files exist for this VPC
     Type: String
@@ -20,6 +21,7 @@ Parameters:
     Description: Secret. Token used for access to the account specified.
     NoEcho: true
     Type: String
+    ConstraintDescription: may be a personal access token.
   Repo:
     Type: String
     Description: GitHub Repo to pull from. Only the Name. not the URL
@@ -28,34 +30,29 @@ Parameters:
     Type: String
     Description: Branch to use from Repo. Only the Name. not the URL
     Default: master
-  # #
-  # # S3Bucket: #TODO: create Github integration.
-  # #   Description: The name of the S3 bucket that contains the source artifact, which must be in the same region as this stack
-  # #   Type: String
-  # SourceS3Key:
-  #   Default: wordpress-single-instance.zip
-  #   Description: The file name of the source artifact, such as myfolder/myartifact.zip
-  #   Type: String
   TemplateFileName:
-    Default: vpc.yaml
+    Default: templates/infrastructure/vpc.yaml
     Description: The file name of the VPC template
     Type: String
+    ConstraintDescription: relative path within the source repository "Repo".
   TestStackName:
     Default: Test-Vpc
     Description: A name for the test VPC stack
     Type: String
   TestStackConfig:
-    Default: test-vpc-configuration.json
+    Default: templates/infrastructure/test-vpc-configuration.json
     Description: The configuration file name for the test vpc stack
     Type: String
+    ConstraintDescription: relative path within the source repository "Repo".
   ProdStackName:
     Default: Prod-Vpc
     Description: A name for the production VPC stack
     Type: String
   ProdStackConfig:
-    Default: prod-vpc-configuration.json
+    Default: templates/infrastructure/prod-vpc-configuration.yaml
     Description: The configuration file name for the production VPC stack
     Type: String
+    ConstraintDescription: relative path within the source repository "Repo".
   ChangeSetName:
     Default: UpdatePreview-Vpc
     Description: A name for the production VPC stack change set
@@ -69,7 +66,7 @@ Metadata:
     ParameterGroups:
       - Label:
           default: "CodePipeline Settings"
-        Parameters: #TODO: match to github entries
+        Parameters:
           - PipelineName
           - GithubUser
           - GithubToken
@@ -97,7 +94,6 @@ Resources:
     Properties:
       VersioningConfiguration:
         Status: Enabled
-  #TODO: create IAM Role for github access ? or can it use another?
   CFNRole:
       Type: AWS::IAM::Role
       Properties:
@@ -205,7 +201,7 @@ Resources:
                 StackName: !Ref TestStackName
                 TemplateConfiguration: !Sub "TemplateSource::${TestStackConfig}"
                 TemplatePath: !Sub "TemplateSource::${TemplateFileName}"
-              RunOrder: '1'
+              RunOrder: 1
             - Name: ApproveTestStack
               ActionTypeId:
                 Category: Approval
@@ -215,7 +211,7 @@ Resources:
               Configuration:
                 NotificationArn: !Ref CodePipelineSNSTopic
                 CustomData: !Sub 'Do you want to create a change set against the production stack and delete the ${TestStackName} stack?'
-              RunOrder: '2'
+              RunOrder: 2
             - Name: DeleteTestStack
               ActionTypeId:
                 Category: Deploy
@@ -226,7 +222,7 @@ Resources:
                 ActionMode: DELETE_ONLY
                 RoleArn: !GetAtt [CFNRole, Arn]
                 StackName: !Ref TestStackName
-              RunOrder: '3'
+              RunOrder: 3
         - Name: ProdStage
           Actions:
             - Name: CreateChangeSet
@@ -244,7 +240,7 @@ Resources:
                 ChangeSetName: !Ref ChangeSetName
                 TemplateConfiguration: !Sub "TemplateSource::${ProdStackConfig}"
                 TemplatePath: !Sub "TemplateSource::${TemplateFileName}"
-              RunOrder: '1'
+              RunOrder: 1
             - Name: ApproveChangeSet
               ActionTypeId:
                 Category: Approval
@@ -254,7 +250,7 @@ Resources:
               Configuration:
                 NotificationArn: !Ref CodePipelineSNSTopic
                 CustomData: !Sub 'A new change set was created for the ${ProdStackName} stack. Do you want to implement the changes?'
-              RunOrder: '2'
+              RunOrder: 2
             - Name: ExecuteChangeSet
               ActionTypeId:
                 Category: Deploy
@@ -266,56 +262,4 @@ Resources:
                 ChangeSetName: !Ref ChangeSetName
                 RoleArn: !GetAtt [CFNRole, Arn]
                 StackName: !Ref ProdStackName
-              RunOrder: '3'
-  CFNRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-        - Action: ['sts:AssumeRole']
-          Effect: Allow
-          Principal:
-            Service: [cloudformation.amazonaws.com]
-        Version: '2012-10-17'
-      Path: /
-      Policies:
-        - PolicyName: CloudFormationRole
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Action:
-                  - 'ec2:*'
-                Effect: Allow
-                Resource: '*'
-
-  PipelineRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-        - Action: ['sts:AssumeRole']
-          Effect: Allow
-          Principal:
-            Service: [codepipeline.amazonaws.com]
-        Version: '2012-10-17'
-      Path: /
-      Policies:
-        - PolicyName: CodePipelineAccess
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Action:
-                - 's3:*'
-                - 'cloudformation:CreateStack'
-                - 'cloudformation:DescribeStacks'
-                - 'cloudformation:DeleteStack'
-                - 'cloudformation:UpdateStack'
-                - 'cloudformation:CreateChangeSet'
-                - 'cloudformation:ExecuteChangeSet'
-                - 'cloudformation:DeleteChangeSet'
-                - 'cloudformation:DescribeChangeSet'
-                - 'cloudformation:SetStackPolicy'
-                - 'iam:PassRole'
-                - 'sns:Publish'
-                Effect: Allow
-                Resource: '*'
+              RunOrder: 3
