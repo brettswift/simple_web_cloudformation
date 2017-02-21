@@ -40,7 +40,7 @@ Parameters:
     Description: A name for the test VPC stack
     Type: String
   TestStackConfig:
-    Default: templates/infrastructure/test-vpc-configuration.json
+    Default: templates/infrastructure/test-vpc-configuration.yaml
     Description: The configuration file name for the test vpc stack
     Type: String
     ConstraintDescription: relative path within the source repository "Repo".
