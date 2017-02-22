@@ -263,3 +263,8 @@ Resources:
                 RoleArn: !GetAtt [CFNRole, Arn]
                 StackName: !Ref ProdStackName
               RunOrder: 3
+Outputs:
+  VpcStackBranch:
+    Description: BranchName
+    Value:
+      Ref: Branch
