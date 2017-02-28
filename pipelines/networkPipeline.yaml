@@ -1,6 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Description: >
+  Manages a pipeline to deploy VPC's and dependent infrastructure.
   Modified from the:
     AWS CloudFormation Sample Template Continuous Delievery: This template
   builds an AWS CodePipeline pipeline that implements a continuous delivery release

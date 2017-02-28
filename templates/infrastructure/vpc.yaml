@@ -25,8 +25,15 @@ Parameters:
     AllowedValues:
       - prod
       - test
+  SubnetCount:
+    Description: The number of subnets to deploy.
+    Type: Number
+    MinValue: 1
+    MaxValue: 3
 Conditions:
-  CreateProdResources: !Equals [ !Ref EnvType, prod ]
+  CreateSubnetThree: !Equals [ !Ref SubnetCount, 3 ]
+  CreateSubnetTwo: #create if count is 2 or 3
+    !Or [!Equals [ !Ref SubnetCount, 2 ], Condition: CreateSubnetThree ]
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -59,6 +66,7 @@ Resources:
           Value: !Sub ${NetworkName} Subnet Public A
   SubnetPublicB:
     Type: AWS::EC2::Subnet
+    Condition: CreateSubnetTwo
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.20.0/24'
@@ -68,7 +76,7 @@ Resources:
           Value: !Sub ${NetworkName} Subnet Public B
   SubnetPublicC:
     Type: AWS::EC2::Subnet
-    Condition: CreateProdResources
+    Condition: CreateSubnetThree
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.40.0/24'
@@ -87,6 +95,7 @@ Resources:
           Value: !Sub ${NetworkName} Subnet Private A
   SubnetPrivateB:
     Type: AWS::EC2::Subnet
+    Condition: CreateSubnetTwo
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.30.0/24'
@@ -96,7 +105,7 @@ Resources:
           Value: !Sub ${NetworkName} Subnet Private B
   SubnetPrivateC:
     Type: AWS::EC2::Subnet
-    Condition: CreateProdResources
+    Condition: CreateSubnetThree
     Properties:
       VpcId: !Ref VPC
       CidrBlock: !Sub '10.${ClassB}.50.0/24'
@@ -126,6 +135,7 @@ Resources:
       NatGatewayId: !Ref NatGatewayA
   PrivateRouteTableB:
     Type: AWS::EC2::RouteTable
+    Condition: CreateSubnetTwo
     Properties:
       VpcId: !Ref VPC
       Tags:
@@ -133,13 +143,14 @@ Resources:
           Value: PrivateRouteTableB
   DefaultPrivateRouteB:
     Type: AWS::EC2::Route
+    Condition: CreateSubnetTwo
     Properties:
       RouteTableId: !Ref PrivateRouteTableB
       DestinationCidrBlock: 0.0.0.0/0
       NatGatewayId: !Ref NatGatewayB
   PrivateRouteTableC:
     Type: AWS::EC2::RouteTable
-    Condition: CreateProdResources
+    Condition: CreateSubnetThree
     Properties:
       VpcId: !Ref VPC
       Tags:
@@ -147,7 +158,7 @@ Resources:
           Value: PrivateRouteTableC
   DefaultPrivateRouteC:
     Type: AWS::EC2::Route
-    Condition: CreateProdResources
+    Condition: CreateSubnetThree
     Properties:
       RouteTableId: !Ref PrivateRouteTableC
       DestinationCidrBlock: 0.0.0.0/0
@@ -165,12 +176,13 @@ Resources:
       RouteTableId: !Ref PublicRouteTable
   PublicSubnetRouteTableAssociationB:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: CreateSubnetTwo
     Properties:
       SubnetId: !Ref SubnetPublicB
       RouteTableId: !Ref PublicRouteTable
   PublicSubnetRouteTableAssociationC:
     Type: AWS::EC2::SubnetRouteTableAssociation
-    Condition: CreateProdResources
+    Condition: CreateSubnetThree
     Properties:
       SubnetId: !Ref SubnetPublicC
       RouteTableId: !Ref PublicRouteTable
@@ -181,12 +193,13 @@ Resources:
       RouteTableId: !Ref PrivateRouteTableA
   PrivateSubnetRouteTableAssociationB:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: CreateSubnetTwo
     Properties:
       SubnetId: !Ref SubnetPrivateB
       RouteTableId: !Ref PrivateRouteTableB
   PrivateSubnetRouteTableAssociationC:
     Type: AWS::EC2::SubnetRouteTableAssociation
-    Condition: CreateProdResources
+    Condition: CreateSubnetThree
     Properties:
       SubnetId: !Ref SubnetPrivateC
       RouteTableId: !Ref PrivateRouteTableC
@@ -273,12 +286,13 @@ Resources:
       NetworkAclId: !Ref PublicSubnetAcl
   PublicSubnetAclAssociationB:
     Type: AWS::EC2::SubnetNetworkAclAssociation
+    Condition: CreateSubnetTwo
     Properties:
       SubnetId: !Ref SubnetPublicB
       NetworkAclId: !Ref PublicSubnetAcl
   PublicSubnetAclAssociationC:
     Type: AWS::EC2::SubnetNetworkAclAssociation
-    Condition: CreateProdResources
+    Condition: CreateSubnetThree
     Properties:
       SubnetId: !Ref SubnetPublicC
       NetworkAclId: !Ref PublicSubnetAcl
@@ -289,12 +303,13 @@ Resources:
       NetworkAclId: !Ref PrivateSubnetAcl
   PrivateSubnetAclAssociationB:
     Type: AWS::EC2::SubnetNetworkAclAssociation
+    Condition: CreateSubnetTwo
     Properties:
       SubnetId: !Ref SubnetPrivateB
       NetworkAclId: !Ref PrivateSubnetAcl
   PrivateSubnetAclAssociationC:
     Type: AWS::EC2::SubnetNetworkAclAssociation
-    Condition: CreateProdResources
+    Condition: CreateSubnetThree
     Properties:
       SubnetId: !Ref SubnetPrivateC
       NetworkAclId: !Ref PrivateSubnetAcl
@@ -304,11 +319,12 @@ Resources:
       Domain: vpc
   NatGatewayEIPB:
     Type: AWS::EC2::EIP
+    Condition: CreateSubnetTwo
     Properties:
       Domain: vpc
   NatGatewayEIPC:
     Type: AWS::EC2::EIP
-    Condition: CreateProdResources
+    Condition: CreateSubnetThree
     Properties:
       Domain: vpc
   NatGatewayA:
@@ -320,12 +336,13 @@ Resources:
   NatGatewayB:
     DependsOn: AttachGateway
     Type: AWS::EC2::NatGateway
+    Condition: CreateSubnetTwo
     Properties:
       AllocationId: !GetAtt NatGatewayEIPB.AllocationId
       SubnetId: !Ref SubnetPublicB
   NatGatewayC:
     DependsOn: AttachGateway
-    Condition: CreateProdResources
+    Condition: CreateSubnetThree
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt NatGatewayEIPC.AllocationId
@@ -431,22 +448,24 @@ Outputs:
   SubnetPublicB:
     Description: 'Subnet B public.'
     Value: !Ref SubnetPublicB
+    Condition: CreateSubnetTwo
     Export:
       Name: !Sub '${AWS::StackName}-SubnetPublicB'
   SubnetPrivateB:
     Description: 'Subnet B private.'
     Value: !Ref SubnetPrivateB
+    Condition: CreateSubnetTwo
     Export:
       Name: !Sub '${AWS::StackName}-SubnetPrivateB'
   SubnetPublicC:
     Description: 'Subnet C public.'
-    Condition: CreateProdResources
+    Condition: CreateSubnetThree
     Value: !Ref SubnetPublicC
     Export:
       Name: !Sub '${AWS::StackName}-SubnetPublicC'
   SubnetPrivateC:
     Description: 'Subnet C private.'
-    Condition: CreateProdResources
+    Condition: CreateSubnetThree
     Value: !Ref SubnetPrivateC
     Export:
       Name: !Sub '${AWS::StackName}-SubnetPrivateC'

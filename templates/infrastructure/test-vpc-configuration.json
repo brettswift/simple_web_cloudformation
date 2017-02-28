@@ -2,6 +2,7 @@
   "Parameters" : {
     "NetworkName" : "PipelineTestVPC",
     "ClassB" : "10",
-    "EnvType": "test"
+    "EnvType": "test",
+    "SubnetCount": 2
   }
 }
