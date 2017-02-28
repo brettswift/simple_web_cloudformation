@@ -3,6 +3,6 @@
     "NetworkName" : "ProdVpc",
     "ClassB" : "200",
     "EnvType": "prod",
-    "SubnetCount": 2
+    "SubnetCount": "2"
   }
 }

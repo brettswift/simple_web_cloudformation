@@ -3,6 +3,6 @@
     "NetworkName" : "PipelineTestVPC",
     "ClassB" : "10",
     "EnvType": "test",
-    "SubnetCount": 2
+    "SubnetCount": "2"
   }
 }
